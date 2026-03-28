@@ -8,6 +8,16 @@
     <artifactId>a3-enforcer</artifactId>
     <version>0.1.0</version>
 
+    <dependencies>
+        <!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.44</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
