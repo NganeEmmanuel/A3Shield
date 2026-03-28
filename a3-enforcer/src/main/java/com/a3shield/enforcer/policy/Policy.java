@@ -1,5 +1,6 @@
 package com.a3shield.enforcer.policy;
 
+import com.a3shield.enforcer.effect.Effect;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;

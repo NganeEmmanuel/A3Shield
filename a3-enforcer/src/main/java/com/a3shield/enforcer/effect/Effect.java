@@ -1,4 +1,4 @@
-package com.a3shield.enforcer.policy;
+package com.a3shield.enforcer.effect;
 
 public enum Effect {
     ALLOW,

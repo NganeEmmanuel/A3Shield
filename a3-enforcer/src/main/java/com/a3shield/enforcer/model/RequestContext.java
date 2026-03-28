@@ -1,11 +1,10 @@
 package com.a3shield.enforcer.model;
 
+import com.a3shield.enforcer.action.Action;
 import lombok.*;
 
 import java.util.Map;
 
-@Getter
-@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

@@ -1,4 +1,4 @@
-package com.a3shield.enforcer.model;
+package com.a3shield.enforcer.action;
 
 import lombok.*;
 
