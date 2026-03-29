@@ -4,10 +4,12 @@ import com.a3shield.enforcer.action.Action;
 import com.a3shield.enforcer.model.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

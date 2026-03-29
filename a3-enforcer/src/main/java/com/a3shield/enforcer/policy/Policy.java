@@ -1,13 +1,12 @@
 package com.a3shield.enforcer.policy;
 
 import com.a3shield.enforcer.effect.Effect;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
