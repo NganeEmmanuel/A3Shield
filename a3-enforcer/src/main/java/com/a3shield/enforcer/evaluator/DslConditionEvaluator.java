@@ -1,5 +1,6 @@
 package com.a3shield.enforcer.evaluator;
 
+import com.a3shield.enforcer.cache.ExpressionCache;
 import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.enforcer.expression.Expression;
 import com.a3shield.enforcer.expression.ExpressionParser;
@@ -32,6 +33,7 @@ public class DslConditionEvaluator implements ConditionEvaluator {
 
     private final ExpressionParser parser = new ExpressionParser();
     private final ValueResolver resolver = new ValueResolver();
+    private final ExpressionCache cache = new ExpressionCache();
 
     /**
      * <p>Evaluate a DSL expression against the provided request context.</p>
@@ -90,7 +92,7 @@ public class DslConditionEvaluator implements ConditionEvaluator {
      */
     private boolean evaluateSingle(String expr, RequestContext context) {
 
-        Expression parsed = parser.parse(expr);
+        Expression parsed = getOrParse(expr);
 
         Object left = resolver.resolve(parsed.left(), context);
         Object right = resolver.resolve(parsed.right(), context);
@@ -104,27 +106,22 @@ public class DslConditionEvaluator implements ConditionEvaluator {
         };
     }
 
-//    /**
-//     * <p>Parse a raw condition string into an {@link Expression}.</p>
-//     *
-//     * @param expr the condition string
-//     * @return the parsed {@link Expression}
-//     * @throws IllegalArgumentException if the expression format is invalid
-//     */
-//    private Expression parseExpression(String expr) {
-//
-//        if (expr.contains("==")) return split(expr, "==");
-//        if (expr.contains("!=")) return split(expr, "!=");
-//        if (expr.contains(">")) return split(expr, ">");
-//        if (expr.contains("<")) return split(expr, "<");
-//
-//        throw new IllegalArgumentException("Invalid expression: " + expr);
-//    }
-//
-//    private Expression split(String expr, String operator) {
-//        String[] parts = expr.split(operator);
-//        return new Expression(parts[0], operator, parts[1]);
-//    }
+    /**
+     * Fetch expression from cache or parse and store it.
+     * @param expr the condition string
+     * @return a structured {@link Expression} object
+     */
+    private Expression getOrParse(String expr) {
+
+        if (cache.contains(expr)) {
+            return cache.get(expr);
+        }
+
+        Expression parsed = parser.parse(expr);
+        cache.put(expr, parsed);
+
+        return parsed;
+    }
 
     private boolean equals(Object left, Object right) {
         if (left == null || right == null) return false;
