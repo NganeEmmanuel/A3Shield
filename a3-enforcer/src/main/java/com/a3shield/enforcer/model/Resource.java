@@ -10,6 +10,8 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Resource {
+    // this can also be an abstract class
+    // for attributes, rather than using maps we can use an abstract method allowing each resource to implement the way they store attributes
 
     private String type;
     private String id;
