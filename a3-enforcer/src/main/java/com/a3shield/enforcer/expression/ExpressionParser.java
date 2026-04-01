@@ -4,10 +4,8 @@ package com.a3shield.enforcer.expression;
  * <p><b>ExpressionParser</b> parses DSL condition expressions into
  * structured {@link Expression} objects.</p>
  *
- * <p>This parser currently supports simple equality expressions
- * using the {@code ==} operator. Future enhancements may extend
- * support to additional operators such as {@code !=}, {@code >},
- * or {@code <}.</p>
+ * <p>This parser currently supports operators such as {@code ==}, {@code !=}, {@code >},
+ * and {@code <}.</p>
  *
  * <p>Example usage:</p>
  * <pre>{@code
@@ -26,11 +24,15 @@ public class ExpressionParser {
      * <p>Notes:</p>
      * <ul>
      *   <li>If the expression is {@code null} or blank, {@code null} is returned.</li>
-     *   <li>Only the {@code ==} operator is supported at present.</li>
-     *   <li>If the expression does not contain exactly two parts separated by {@code ==},
+     *   <li>If the expression does not contain exactly two parts separated by a {@code Comparison operators}, or if the operator is not supported, then
      *       an {@link IllegalArgumentException} is thrown.</li>
      * </ul>
      *
+     * <p>Supported operators:</p>
+     * <ul>
+     *   <li>Comparison operators: {@code ==}, {@code !=}, {@code >}, and {@code <}.</p>
+     * </ul>
+
      * @param expression the condition expression string (e.g., {@code resource.id == subject.id})
      * @return a structured {@link Expression} object, or {@code null} if the input is blank
      * @throws IllegalArgumentException if the expression format is invalid
@@ -41,13 +43,16 @@ public class ExpressionParser {
             return null;
         }
 
-        // Only support == for now
-        String[] parts = expression.split("==");
+        if (expression.contains("==")) return split(expression, "==");
+        if (expression.contains("!=")) return split(expression, "!=");
+        if (expression.contains(">")) return split(expression, ">");
+        if (expression.contains("<")) return split(expression, "<");
 
-        if (parts.length != 2) {
-            throw new IllegalArgumentException("Invalid expression: " + expression);
-        }
+        throw new IllegalArgumentException("Invalid expression: " + expression);
+    }
 
-        return new Expression(parts[0], "==", parts[1]);
+    private Expression split(String expr, String operator) {
+        String[] parts = expr.split(operator);
+        return new Expression(parts[0], operator, parts[1]);
     }
 }
