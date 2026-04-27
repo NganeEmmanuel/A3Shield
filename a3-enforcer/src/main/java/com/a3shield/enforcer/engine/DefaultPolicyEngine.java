@@ -65,7 +65,7 @@ public class DefaultPolicyEngine implements PolicyEngine {
     @Override
     public Decision evaluate(RequestContext context) {
 
-        List<Policy> allPolicies = policyRepository.findAll();
+        List<Policy> allPolicies = policyRepository.findAll(); // todo find policies based on some condition(resource and action)
 
         List<Policy> matchedPolicies = policyMatcher.match(context, allPolicies);
 
@@ -79,6 +79,8 @@ public class DefaultPolicyEngine implements PolicyEngine {
 
             if (conditionResult) {
                 decisions.add(mapEffect(policy));
+            } else {
+                decisions.add(Decision.DENY);
             }
         }
 

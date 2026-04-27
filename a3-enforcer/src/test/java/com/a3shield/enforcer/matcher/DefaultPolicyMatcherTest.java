@@ -39,7 +39,7 @@ class DefaultPolicyMatcherTest {
                         .type(SubjectType.USER)
                         .roles(Set.of("user"))
                         .build())
-                .resource(Resource.builder()
+                .resource(Intent.builder()
                         .type("document")
                         .build())
                 .action(new Action("read"))
@@ -60,7 +60,7 @@ class DefaultPolicyMatcherTest {
                 .build();
 
         RequestContext context = RequestContext.builder()
-                .resource(Resource.builder().type("document").build())
+                .resource(Intent.builder().type("document").build())
                 .action(new Action("read"))
                 .build();
 
@@ -79,7 +79,7 @@ class DefaultPolicyMatcherTest {
                 .build();
 
         RequestContext context = RequestContext.builder()
-                .resource(Resource.builder().type("document").build())
+                .resource(Intent.builder().type("document").build())
                 .action(new Action("read"))
                 .build();
 

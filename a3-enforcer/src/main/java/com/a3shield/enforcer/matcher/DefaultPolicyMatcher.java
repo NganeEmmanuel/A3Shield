@@ -1,9 +1,11 @@
 package com.a3shield.enforcer.matcher;
 
 import com.a3shield.enforcer.context.RequestContext;
+import com.a3shield.enforcer.model.Resource;
 import com.a3shield.enforcer.model.Subject;
 import com.a3shield.enforcer.policy.Policy;
 
+import javax.management.AttributeNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,10 +55,15 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
      */
     private boolean matches(Policy policy, RequestContext context) {
 
-        // Match resource
-        if (policy.getResource() != null &&
-                !policy.getResource().equals(context.getResource().getType())) {
-            return false;
+        List<Resource> resources = context.getResources();
+
+        // Match resource type
+        if (policy.getResource() != null) {
+            boolean match = resources != null && resources.stream()
+                    .map(r -> r.resolve("type"))
+                    .anyMatch(type -> policy.getResource().equals(type));
+
+            if (!match) return false;
         }
 
         // Match action
@@ -65,7 +72,7 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
             return false;
         }
 
-        // Match subject attributes
+        // Match subject
         return matchSubject(policy.getSubject(), context.getSubject());
     }
 

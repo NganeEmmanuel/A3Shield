@@ -4,11 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+<!--    <parent>-->
+<!--        <groupId>org.springframework.boot</groupId>-->
+<!--        <artifactId>spring-boot-starter-parent</artifactId>-->
+<!--        <version>3.2.5</version> &lt;!&ndash; Use the latest stable version &ndash;&gt;-->
+<!--        <relativePath/> &lt;!&ndash; lookup parent from repository &ndash;&gt;-->
+<!--    </parent>-->
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version> <!-- Use the latest stable version -->
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>com.a3shield</groupId>
+        <artifactId>a3shield</artifactId>
+        <version>0.1.0</version>
     </parent>
 
     <groupId>com.a3shield</groupId>
@@ -37,6 +42,7 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-jose</artifactId>
         </dependency>
+
 
         <!-- A3 Enforcer -->
         <dependency>
@@ -68,8 +74,6 @@
     </dependencies>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     

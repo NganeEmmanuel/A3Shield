@@ -8,5 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class Action {
-    private String name; // read, write, delete
+    private String name; // read, write, delete, modify
 }

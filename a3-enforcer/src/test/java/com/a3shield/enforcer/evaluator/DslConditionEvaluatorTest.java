@@ -20,7 +20,7 @@ class DslConditionEvaluatorTest {
                         .id("1")
                         .type(SubjectType.USER)
                         .build())
-                .resource(Resource.builder()
+                .resource(Target.builder()
                         .attributes(Map.of("ownerId", "1"))
                         .build())
                 .build();
@@ -38,7 +38,7 @@ class DslConditionEvaluatorTest {
 
         RequestContext context = RequestContext.builder()
                 .subject(Subject.builder().id("2").build())
-                .resource(Resource.builder()
+                .resource(Target.builder()
                         .attributes(Map.of("ownerId", "1"))
                         .build())
                 .build();

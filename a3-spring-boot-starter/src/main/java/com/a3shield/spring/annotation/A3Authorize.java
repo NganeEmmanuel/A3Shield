@@ -9,7 +9,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface A3Authorize {
-
     /**
      * DSL condition expression.
      */

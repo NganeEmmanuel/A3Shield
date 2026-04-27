@@ -20,5 +20,6 @@ public class Subject {
     private String id;
     private SubjectType type; // USER, SERVICE
     private Set<String> roles;
+    private Set<String> permissions;
     private Map<String, Object> attributes;
 }

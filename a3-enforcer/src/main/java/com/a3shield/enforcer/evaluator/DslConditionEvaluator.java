@@ -6,6 +6,9 @@ import com.a3shield.enforcer.expression.Expression;
 import com.a3shield.enforcer.expression.ExpressionParser;
 import com.a3shield.enforcer.expression.ValueResolver;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * <p><b>DslConditionEvaluator</b> is an advanced implementation of
  * {@link ConditionEvaluator} that supports evaluation of DSL expressions
@@ -90,20 +93,25 @@ public class DslConditionEvaluator implements ConditionEvaluator {
      * @param context the request context
      * @return {@code true} if the condition is satisfied, {@code false} otherwise
      */
+
+    // update idea is that since the we compare each field, we have to compare both in the case of single item resource or multiple items resources
+    // so for each item we run the compare for each field
     private boolean evaluateSingle(String expr, RequestContext context) {
 
         Expression parsed = getOrParse(expr);
 
-        Object left = resolver.resolve(parsed.left(), context);
-        Object right = resolver.resolve(parsed.right(), context);
+        Object leftRaw = resolver.resolve(parsed.left(), context);
+        Object rightRaw = resolver.resolve(parsed.right(), context);
 
-        return switch (parsed.operator()) {
-            case "==" -> equals(left, right);
-            case "!=" -> !equals(left, right);
-            case ">" -> compare(left, right) > 0;
-            case "<" -> compare(left, right) < 0;
-            default -> false;
-        };
+        List<?> leftList = toList(leftRaw);
+        List<?> rightList = toList(rightRaw);
+
+        // ANY match semantics (default)
+        return leftList.stream().anyMatch(l ->
+                rightList.stream().anyMatch(r ->
+                        evaluateComparison(l, r, parsed.operator())
+                )
+        );
     }
 
     /**
@@ -125,11 +133,18 @@ public class DslConditionEvaluator implements ConditionEvaluator {
 
     private boolean equals(Object left, Object right) {
         if (left == null || right == null) return false;
-        return left.toString().equals(right.toString());
+        return Objects.equals(left, right);
     }
 
     private int compare(Object left, Object right) {
         if (left == null || right == null) return 0;
+
+        if (left instanceof Number && right instanceof Number) {
+            return Double.compare(
+                    ((Number) left).doubleValue(),
+                    ((Number) right).doubleValue()
+            );
+        }
 
         try {
             double l = Double.parseDouble(left.toString());
@@ -138,5 +153,28 @@ public class DslConditionEvaluator implements ConditionEvaluator {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    private List<?> toList(Object obj) {
+        if (obj == null) return List.of((Object) null);
+        if (obj instanceof List<?>) return (List<?>) obj;
+        return List.of(obj);
+    }
+
+    private boolean evaluateComparison(Object left, Object right, String operator) {
+        return switch (operator) {
+            case "==" -> equals(left, right);
+            case "!=" -> !equals(left, right);
+            case ">" -> compare(left, right) > 0;
+            case "<" -> compare(left, right) < 0;
+            default -> false;
+        };
+    }
+
+    boolean compareAnyMatch(Object left, Object right) {
+        if (right instanceof List<?>) {
+            return ((List<?>) right).stream().anyMatch(r -> Objects.equals(left, r));
+        }
+        return Objects.equals(left, right);
     }
 }

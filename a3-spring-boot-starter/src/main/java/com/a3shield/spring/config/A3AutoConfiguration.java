@@ -6,6 +6,7 @@ import com.a3shield.enforcer.engine.*;
 import com.a3shield.enforcer.evaluator.DslConditionEvaluator;
 import com.a3shield.enforcer.matcher.DefaultPolicyMatcher;
 
+import com.a3shield.enforcer.permission.PermissionExtractor;
 import com.a3shield.enforcer.repository.InMemoryPolicyRepository;
 import com.a3shield.enforcer.repository.PolicyRepository;
 import org.springframework.context.annotation.Bean;
@@ -39,4 +40,14 @@ public class A3AutoConfiguration {
     public AccessEnforcer accessEnforcer(PolicyEngine engine) {
         return new AccessEnforcer(engine);
     }
+
+    @Bean
+    public List<PermissionExtractor> permissionExtractors() {
+        return List.of();
+    }
+
+//    @Bean
+//    public SubjectExtractor subjectExtractor(){
+//        return new SpringSecuritySubjectContextExtractor();
+//    }
 }

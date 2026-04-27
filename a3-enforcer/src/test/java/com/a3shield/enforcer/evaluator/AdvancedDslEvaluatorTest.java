@@ -17,7 +17,7 @@ class AdvancedDslEvaluatorTest {
 
         RequestContext ctx = RequestContext.builder()
                 .subject(Subject.builder().id("1").type(SubjectType.USER).build())
-                .resource(Resource.builder()
+                .resource(Target.builder()
                         .attributes(Map.of("ownerId", "1"))
                         .build())
                 .build();
@@ -35,7 +35,7 @@ class AdvancedDslEvaluatorTest {
 
         RequestContext ctx = RequestContext.builder()
                 .subject(Subject.builder().id("2").type(SubjectType.USER).build())
-                .resource(Resource.builder()
+                .resource(Target.builder()
                         .attributes(Map.of("ownerId", "1"))
                         .build())
                 .build();
@@ -52,7 +52,7 @@ class AdvancedDslEvaluatorTest {
     void shouldHandleGreaterThan() {
 
         RequestContext ctx = RequestContext.builder()
-                .resource(Resource.builder()
+                .resource(Target.builder()
                         .attributes(Map.of("price", 200))
                         .build())
                 .build();

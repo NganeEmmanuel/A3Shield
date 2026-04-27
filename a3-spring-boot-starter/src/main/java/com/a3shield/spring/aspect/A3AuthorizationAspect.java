@@ -2,16 +2,25 @@ package com.a3shield.spring.aspect;
 
 import com.a3shield.enforcer.AccessEnforcer;
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.Subject;
+import com.a3shield.enforcer.model.Intent;
+import com.a3shield.enforcer.model.Target;
 import com.a3shield.spring.annotation.A3Authorize;
 
-import com.a3shield.spring.security.SecurityContextExtractor;
+import com.a3shield.spring.annotation.A3Intent;
+import com.a3shield.spring.context.IntentContentHolder;
+import com.a3shield.spring.context.RequestContextHolder;
+import com.a3shield.spring.context.TargetContextHolder;
+import com.a3shield.spring.security.SubjectExtractor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  * Intercepts methods annotated with @A3Authorize
@@ -20,12 +29,14 @@ import java.util.Map;
 @Aspect
 @Component
 public class A3AuthorizationAspect {
+    private static final Logger logger = LoggerFactory.getLogger(A3AuthorizationAspect.class);
 
     private final AccessEnforcer enforcer;
-    private final SecurityContextExtractor extractor = new SecurityContextExtractor();
+    private final SubjectExtractor extractor;
 
-    public A3AuthorizationAspect(AccessEnforcer enforcer) {
+    public A3AuthorizationAspect(AccessEnforcer enforcer, SubjectExtractor extractor) {
         this.enforcer = enforcer;
+        this.extractor = extractor;
     }
 
     // todo we can have two aspects - one (a3Authorize) for direct string expressions and another (a3CheckPermission) that takes in a permission(DOCUMENT_READ, USER_WRITE) name and looks up attached expression/policies from the policy repo. This way we can support both inline expressions and system permissions.
@@ -34,8 +45,23 @@ public class A3AuthorizationAspect {
 
         String expression = a3Authorize.value();
 
+        if(!expression.isEmpty()){
+            Object intentObject = getIntentObject(joinPoint);
+            if(intentObject != null){
+                // perform preAuthorization checks with intent
+                preAuthorize(joinPoint);
+            }else{
+                logger.warn("static use of an expression directly in @A3Authorize() annotation requires the use of @A3Intent in the method parameter to mark the resource to be used in the comparison");
+            }
+        }
+
+        // run the method and get the return value(target)
+        Object result = joinPoint.proceed();
+        List<Target> targets = TargetContextHolder.getTargetContext(result);
+        RequestContextHolder.setContextResource(targets);
+
         // TODO: Replace with real context extraction (JWT, request, etc.)/ Better still allow devs to pass context in the annotation
-        RequestContext context = buildContext();
+        RequestContext context = RequestContextHolder.getRequestContext(joinPoint);
 
         boolean allowed = enforcer.enforce(context);
 
@@ -47,13 +73,31 @@ public class A3AuthorizationAspect {
         return joinPoint.proceed();
     }
 
-    private RequestContext buildContext() {
+    private Object getIntentObject(ProceedingJoinPoint joinPoint){
+        MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        Annotation[][] parameterAnnotations = methodSignature.getMethod().getParameterAnnotations();
+        Object[] args = joinPoint.getArgs();
+        for (int i = 0; i < parameterAnnotations.length; i++) {
+            for (Annotation annotation : parameterAnnotations[i]) {
+                if (annotation instanceof A3Intent) {
+                    return args[i];
+                }
+            }
+        }
 
-        Subject subject = extractor.extractSubject();
-
-        return RequestContext.builder()
-                .subject(subject)
-                .context(Map.of()) // optional metadata
-                .build();
+        return null;
     }
+
+    private void preAuthorize(Object intentObject){
+        Intent intent = IntentContentHolder.getCurrentIntent(intentObject);
+        RequestContext context = RequestContextHolder.getRequestContext(intent);
+
+        boolean allowed = enforcer.enforce(context);
+
+        if (!allowed) {
+            throw new AccessDeniedException("Access Denied");
+        }
+    }
+
+    private
 }

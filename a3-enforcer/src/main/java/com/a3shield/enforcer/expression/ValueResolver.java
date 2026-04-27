@@ -3,7 +3,11 @@ package com.a3shield.enforcer.expression;
 import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.enforcer.model.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p><b>ValueResolver</b> resolves values from a {@link RequestContext}
@@ -27,6 +31,7 @@ import java.util.Map;
  * for concurrent use.</p>
  */
 public class ValueResolver {
+    private static final Logger logger = LoggerFactory.getLogger(ValueResolver.class);
 
     /**
      * <p>Resolve a value from the given {@link RequestContext} based on the provided path.</p>
@@ -40,9 +45,8 @@ public class ValueResolver {
         if (path.startsWith("subject.")) {
             return resolveSubject(path.substring(8), context.getSubject());
         }
-
         if (path.startsWith("resource.")) {
-            return resolveResource(path.substring(9), context.getResource());
+            return resolveResource(path.substring(9), context.getResources());
         }
 
         if (path.startsWith("context.")) {
@@ -76,19 +80,31 @@ public class ValueResolver {
      * <p>Resolve a field from the {@link Resource} object.</p>
      *
      * @param field the resource field name (e.g., {@code id}, {@code type}, or custom attribute key)
-     * @param resource the resource object
+     * @param resources the List of or single resource object
      * @return the resolved value, or {@code null} if not found
      */
-    private Object resolveResource(String field, Resource resource) {
-        if (resource == null) return null;
+    private List<Object> resolveResource(String field, List<Resource> resources) {
+        if (resources == null || resources.isEmpty()) {
+            logger.debug("No resources available for field '{}'", field);
+            return null;
+        }
 
-        if ("id".equals(field)) return resource.getId();
-        if ("type".equals(field)) return resource.getType();
+        List<Object> values = new ArrayList<>();
 
-        return resource.getAttributes() != null
-                ? resource.getAttributes().get(field)
-                : null;
+        for (Resource resource : resources) {
+            Object val = resource.resolve(field);
+
+            if (val == null) {
+                logger.debug("Missing '{}' on resource {}", field, resource);
+            }
+
+            values.add(val);
+        }
+
+        return values;
     }
+
+
 
     /**
      * <p>Resolve a field from the contextual attributes map.</p>

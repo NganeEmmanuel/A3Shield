@@ -50,9 +50,13 @@ public class ExpressionParser {
 
         throw new IllegalArgumentException("Invalid expression: " + expression);
     }
-
+    
     private Expression split(String expr, String operator) {
-        String[] parts = expr.split(operator);
-        return new Expression(parts[0], operator, parts[1]);
+        int index = expr.indexOf(operator);
+
+        String left = expr.substring(0, index);
+        String right = expr.substring(index + operator.length());
+
+        return new Expression(left, operator, right);
     }
 }
