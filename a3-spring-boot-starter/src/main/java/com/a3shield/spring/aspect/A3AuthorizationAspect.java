@@ -2,8 +2,7 @@ package com.a3shield.spring.aspect;
 
 import com.a3shield.enforcer.AccessEnforcer;
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.Intent;
-import com.a3shield.enforcer.model.Target;
+import com.a3shield.enforcer.model.Resource;
 import com.a3shield.spring.annotation.A3Authorize;
 
 import com.a3shield.spring.annotation.A3Intent;
@@ -57,11 +56,12 @@ public class A3AuthorizationAspect {
 
         // run the method and get the return value(target)
         Object result = joinPoint.proceed();
-        List<Target> targets = TargetContextHolder.getTargetContext(result);
-        RequestContextHolder.setContextResource(targets);
+        List<Resource> targets = TargetContextHolder.getTargetContext(result);
+//        RequestContextHolder.setContextResource(targets);
+        RequestContext context =  RequestContextHolder.getRequestContext(targets);
 
         // TODO: Replace with real context extraction (JWT, request, etc.)/ Better still allow devs to pass context in the annotation
-        RequestContext context = RequestContextHolder.getRequestContext(joinPoint);
+//        RequestContext context = RequestContextHolder.getRequestContext(joinPoint);
 
         boolean allowed = enforcer.enforce(context);
 
@@ -89,8 +89,8 @@ public class A3AuthorizationAspect {
     }
 
     private void preAuthorize(Object intentObject){
-        Intent intent = IntentContentHolder.getCurrentIntent(intentObject);
-        RequestContext context = RequestContextHolder.getRequestContext(intent);
+        Resource intent = IntentContentHolder.getCurrentIntent(intentObject);
+        RequestContext context = RequestContextHolder.getRequestContext(List.of(intent));
 
         boolean allowed = enforcer.enforce(context);
 
@@ -99,5 +99,4 @@ public class A3AuthorizationAspect {
         }
     }
 
-    private
 }

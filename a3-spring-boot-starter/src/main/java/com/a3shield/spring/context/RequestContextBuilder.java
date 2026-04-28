@@ -13,7 +13,7 @@ public class RequestContextBuilder {
         // get the resource from the joinPoint
         return RequestContext.builder()
                 .subject(SubjectContext.getCurrentSubject())
-                .resource(resource)
+                .resources(resource)
 //                .action() // todo implement action extractor/determinant
 //                .context() // todo implement contect aditionalContext builder (like ip, country, region, time, etc)
                 .build();

@@ -1,7 +1,7 @@
 package com.a3shield.spring.context;
 
 import com.a3shield.enforcer.model.Intent;
-import org.aspectj.lang.JoinPoint;
+import com.a3shield.enforcer.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import java.util.Map;
 @Component
 public class IntentContextBuilder {
     private final Logger logger = LoggerFactory.getLogger(IntentContextBuilder.class);
-    public Intent build(Object object) {
+    public Resource build(Object object) {
         Map<String, Object> attributes = new HashMap<>();
         Field[] fields = object.getClass().getDeclaredFields();
         for (Field field : fields) {

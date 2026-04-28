@@ -17,7 +17,8 @@ public class RequestContext {
 
     private Subject subject; // this info can be gotten from both the request and DB depending on the usage (based on checks performed)
     // builder pattern recommended
-    private final List<Resource> resources;
+    @Setter
+    private List<Resource> resources;
     private Action action;
     private Map<String, Object> context; // time, location, ip, metadata, etc.
 

@@ -12,17 +12,15 @@ public class RequestContextHolder {
     public static RequestContext getRequestContext(List<Resource> resource) {
         if (requestContextHolder.get() == null) {
             setRequestContext(requestContextBuilder.buildRequestContext(resource));
+        }else{
+            requestContextHolder.get().setResources(resource);
         }
-       requestContextHolder.get().setResource(resource);
+
         return requestContextHolder.get();
     }
 
     public static RequestContext getRequestContext() {
         return requestContextHolder.get();
-    }
-
-    public static void setContextResource(List<? extends Resource> resource){
-        getRequestContext().setResource(resource);
     }
 
     public static void setRequestContext(RequestContext requestContext) {

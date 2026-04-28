@@ -1,5 +1,6 @@
 package com.a3shield.spring.context;
 
+import com.a3shield.enforcer.model.Resource;
 import com.a3shield.enforcer.model.Target;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,8 @@ public class TargetContextBuilder {
     private final Logger logger = LoggerFactory.getLogger(TargetContextBuilder.class);
 
     //todo implement method
-    public List<Target> build(Object objects){
-        List<Target> targetList = new ArrayList<>();
+    public List<Resource> build(Object objects){
+        List<Resource> targetList = new ArrayList<>();
         if(objects instanceof List<?>){
             targetList.addAll(buildTargetList((List<?>) objects));
         }else{
