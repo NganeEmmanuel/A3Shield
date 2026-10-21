@@ -10,7 +10,6 @@ import java.util.Objects;
 
 @Getter
 @NoArgsConstructor(force = true)
-@AllArgsConstructor
 @Builder
 //we can use an annotation like A3ValidateResources to validate all list of resources. that we it is done on creation of a request context object
 public class RequestContext {
@@ -22,6 +21,13 @@ public class RequestContext {
     private Action action;
     private Map<String, Object> context; // time, location, ip, metadata, etc.
 
+    public RequestContext(Subject subject, List<Resource> resources, Action action, Map<String, Object> context) {
+        this.subject = subject;
+        this.resources = resources;
+        this.action = action;
+        this.context = context;
+        validateResources(resources);
+    }
     private void validateResources(List<Resource> resources) {
         if (resources == null || resources.isEmpty()) return;
 
@@ -34,6 +40,11 @@ public class RequestContext {
                 );
             }
         }
+    }
+
+    public String getResourceType(){
+        if(resources == null || resources.isEmpty()) throw new NullPointerException("Resource must nut be empty or null");
+        return resources.getFirst().resolve("type").toString();
     }
 
 }

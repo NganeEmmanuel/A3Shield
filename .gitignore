@@ -35,5 +35,5 @@ yarn.lock
 # Ignore TypeScript declaration files
 *.d.ts
 
-# ignore target directory in modules
-/a3-enforcer/target
+# ignore Maven build output in all modules
+target/

@@ -1,5 +1,6 @@
 package com.a3shield.enforcer.repository;
 
+import com.a3shield.enforcer.action.Action;
 import com.a3shield.enforcer.policy.Policy;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public class InMemoryPolicyRepository implements PolicyRepository {
     }
 
     @Override
-    public List<Policy> findAll() {
+    public List<Policy> findAll(Action action, String resourceType) {
         return policies;
     }
 }

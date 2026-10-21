@@ -4,6 +4,7 @@ import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.enforcer.model.*;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,9 +21,9 @@ class DslConditionEvaluatorTest {
                         .id("1")
                         .type(SubjectType.USER)
                         .build())
-                .resource(Target.builder()
+                .resources(List.of(Target.builder()
                         .attributes(Map.of("ownerId", "1"))
-                        .build())
+                        .build()))
                 .build();
 
         boolean result = evaluator.evaluate(
@@ -38,9 +39,9 @@ class DslConditionEvaluatorTest {
 
         RequestContext context = RequestContext.builder()
                 .subject(Subject.builder().id("2").build())
-                .resource(Target.builder()
+                .resources(List.of(Target.builder()
                         .attributes(Map.of("ownerId", "1"))
-                        .build())
+                        .build()))
                 .build();
 
         boolean result = evaluator.evaluate(

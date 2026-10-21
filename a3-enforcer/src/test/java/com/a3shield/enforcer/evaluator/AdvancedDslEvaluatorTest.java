@@ -4,6 +4,7 @@ import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.enforcer.model.*;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,9 +18,9 @@ class AdvancedDslEvaluatorTest {
 
         RequestContext ctx = RequestContext.builder()
                 .subject(Subject.builder().id("1").type(SubjectType.USER).build())
-                .resource(Target.builder()
+                .resources(List.of(Target.builder()
                         .attributes(Map.of("ownerId", "1"))
-                        .build())
+                        .build()))
                 .build();
 
         boolean result = evaluator.evaluate(
@@ -35,9 +36,9 @@ class AdvancedDslEvaluatorTest {
 
         RequestContext ctx = RequestContext.builder()
                 .subject(Subject.builder().id("2").type(SubjectType.USER).build())
-                .resource(Target.builder()
+                .resources(List.of(Target.builder()
                         .attributes(Map.of("ownerId", "1"))
-                        .build())
+                        .build()))
                 .build();
 
         boolean result = evaluator.evaluate(
@@ -52,9 +53,9 @@ class AdvancedDslEvaluatorTest {
     void shouldHandleGreaterThan() {
 
         RequestContext ctx = RequestContext.builder()
-                .resource(Target.builder()
+                .resources(List.of(Target.builder()
                         .attributes(Map.of("price", 200))
-                        .build())
+                        .build()))
                 .build();
 
         boolean result = evaluator.evaluate(

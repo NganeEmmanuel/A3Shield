@@ -49,9 +49,9 @@ class DefaultPolicyEngineTest {
                         .id("1")
                         .type(SubjectType.USER)
                         .build())
-                .resource(Intent.builder()
+                .resources(List.of(Intent.builder()
                         .type("document")
-                        .build())
+                        .build()))
                 .action(new Action("read"))
                 .build();
 
@@ -73,7 +73,7 @@ class DefaultPolicyEngineTest {
         );
 
         RequestContext context = RequestContext.builder()
-                .resource(Intent.builder().type("document").build())
+                .resources(List.of(Intent.builder().type("document").build()))
                 .action(new Action("read"))
                 .build();
 
@@ -101,7 +101,7 @@ class DefaultPolicyEngineTest {
         );
 
         RequestContext context = RequestContext.builder()
-                .resource(Intent.builder().type("document").build())
+                .resources(List.of(Intent.builder().type("document").build()))
                 .action(new Action("read"))
                 .build();
 

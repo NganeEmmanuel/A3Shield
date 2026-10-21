@@ -8,14 +8,12 @@ import com.a3shield.spring.annotation.A3Authorize;
 import com.a3shield.spring.annotation.A3Intent;
 import com.a3shield.spring.context.IntentContentHolder;
 import com.a3shield.spring.context.RequestContextHolder;
-import com.a3shield.spring.context.TargetContextHolder;
-import com.a3shield.spring.security.SubjectExtractor;
+import com.a3shield.spring.exceptions.AccessDeniedException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
@@ -29,16 +27,12 @@ import java.util.List;
 @Component
 public class A3AuthorizationAspect {
     private static final Logger logger = LoggerFactory.getLogger(A3AuthorizationAspect.class);
-
     private final AccessEnforcer enforcer;
-    private final SubjectExtractor extractor;
 
-    public A3AuthorizationAspect(AccessEnforcer enforcer, SubjectExtractor extractor) {
+    public A3AuthorizationAspect(AccessEnforcer enforcer) {
         this.enforcer = enforcer;
-        this.extractor = extractor;
     }
 
-    // todo we can have two aspects - one (a3Authorize) for direct string expressions and another (a3CheckPermission) that takes in a permission(DOCUMENT_READ, USER_WRITE) name and looks up attached expression/policies from the policy repo. This way we can support both inline expressions and system permissions.
     @Around("@annotation(a3Authorize)")
     public Object authorize(ProceedingJoinPoint joinPoint, A3Authorize a3Authorize) throws Throwable {
 
@@ -50,24 +44,8 @@ public class A3AuthorizationAspect {
                 // perform preAuthorization checks with intent
                 preAuthorize(joinPoint);
             }else{
-                logger.warn("static use of an expression directly in @A3Authorize() annotation requires the use of @A3Intent in the method parameter to mark the resource to be used in the comparison");
+                logger.debug("static use of an expression directly in @A3Authorize() annotation requires the use of @A3Intent in the method parameter to mark the resource to be used in the comparison");
             }
-        }
-
-        // run the method and get the return value(target)
-        Object result = joinPoint.proceed();
-        List<Resource> targets = TargetContextHolder.getTargetContext(result);
-//        RequestContextHolder.setContextResource(targets);
-        RequestContext context =  RequestContextHolder.getRequestContext(targets);
-
-        // TODO: Replace with real context extraction (JWT, request, etc.)/ Better still allow devs to pass context in the annotation
-//        RequestContext context = RequestContextHolder.getRequestContext(joinPoint);
-
-        boolean allowed = enforcer.enforce(context);
-
-        if (!allowed) {
-//            throw new RuntimeException("Access Denied");
-            throw new AccessDeniedException("Access Denied");
         }
 
         return joinPoint.proceed();
@@ -88,14 +66,14 @@ public class A3AuthorizationAspect {
         return null;
     }
 
-    private void preAuthorize(Object intentObject){
+    private void preAuthorize(Object intentObject) throws AccessDeniedException {
         Resource intent = IntentContentHolder.getCurrentIntent(intentObject);
         RequestContext context = RequestContextHolder.getRequestContext(List.of(intent));
 
         boolean allowed = enforcer.enforce(context);
 
         if (!allowed) {
-            throw new AccessDeniedException("Access Denied");
+            throw new AccessDeniedException("Access Denied"); // use A3AccessDeniedException
         }
     }
 

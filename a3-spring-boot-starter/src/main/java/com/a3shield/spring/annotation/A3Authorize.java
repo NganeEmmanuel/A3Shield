@@ -12,5 +12,5 @@ public @interface A3Authorize {
     /**
      * DSL condition expression.
      */
-    String value();
+    String value() default "";
 }

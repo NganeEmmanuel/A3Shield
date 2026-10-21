@@ -1,5 +1,6 @@
 package com.a3shield.enforcer.repository;
 
+import com.a3shield.enforcer.action.Action;
 import com.a3shield.enforcer.policy.Policy;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public interface PolicyRepository {
      * @return a non-null list of {@link Policy} objects representing all
      *         policies available in the repository.
      */
-    List<Policy> findAll();
+    List<Policy> findAll(Action action, String resourceType);
 
 //    /**
 //     * <p>Add a list of policies to the repository.</p>
