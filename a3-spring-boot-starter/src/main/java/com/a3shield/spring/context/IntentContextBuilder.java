@@ -4,13 +4,11 @@ import com.a3shield.enforcer.model.Intent;
 import com.a3shield.enforcer.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
 public class IntentContextBuilder {
     private final Logger logger = LoggerFactory.getLogger(IntentContextBuilder.class);
     public Resource build(Object object) {

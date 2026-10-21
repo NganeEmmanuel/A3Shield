@@ -38,6 +38,28 @@
                 <artifactId>logback-classic</artifactId>
                 <version>1.5.13</version>
             </dependency>
+
+            <!-- JDK 23 support: override Spring Boot 3.2.5's mockito 5.7 / byte-buddy 1.14 -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>5.14.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>5.14.2</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>1.15.10</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-agent</artifactId>
+                <version>1.15.10</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

@@ -21,13 +21,17 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 - [x] Thread-safe ExpressionCache; in-memory repository; 15 passing tests
 - [x] Decision model incl. NOT_APPLICABLE; resources-as-list with homogeneity validation
 
-### M1 — Stabilize the starter 🔜 NEXT
-- [ ] Fix `A3SecurePolicyAspect`: typed `AccessDeniedException` must reach callers (no Throwable-wrap); return-value semantics clarified
-- [ ] Starter unit tests: context builders first, then aspects with a mocked enforcer
-- [ ] Document Intent-vs-Target mental model in code + README section
-- [ ] RequestCheck chain SPI in the starter (ADR-0001): pluggable perimeter checks, no built-in CORS/rate-limit
+### M1 — Stabilize the starter ✅ DONE (2026-10-21)
+- [x] Fix `A3SecurePolicyAspect`: typed `AccessDeniedException` reaches callers un-wrapped; original return value passed through on allow (per-row filtering is M6)
+- [x] Fix `A3AuthorizationAspect`: intent now built from the `@A3Intent` parameter (was passing the join point); `@A3Intent` retargeted to PARAMETER (was TYPE — the path could never compile for users)
+- [x] `AccessDeniedException` is now unchecked so it survives proxies/interceptors
+- [x] Starter unit tests: builders, holders, both aspects (mocked enforcer), check chain, filter — 19 tests
+- [x] RequestCheck chain SPI (ADR-0001): `RequestCheck`/`CheckResult`/`RequestCheckChain` + `A3RequestCheckFilter` (403 on denial, clears all ThreadLocal holders per request)
+- [x] Real auto-configuration: `@AutoConfiguration` + `META-INF/spring/...imports` registration, `@ConditionalOnMissingBean` back-off, aspects/builders as beans (stereotype annotations removed)
+- [x] Document Intent-vs-Target mental model (README + aspect javadocs)
+- [x] Parent POM: mockito 5.14.2 / byte-buddy 1.15.10 pinned for JDK 23
 
-### M2 — Contract evolution (breaking, do while small) 📋 PLANNED
+### M2 — Contract evolution (breaking, do while small) 🔜 NEXT
 *Implements ADR-0005, ADR-0008 §1–2, ADR-0009. One coordinated breaking release, before anything is published.*
 - [ ] Extract `a3-core` (models, DecisionResult, errors — zero deps)
 - [ ] `DecisionResult` replaces boolean across PolicyEngine/AccessEnforcer; `AccessDeniedException` carries it (ADR-0005)
@@ -78,5 +82,6 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 4. What exactly goes into v0.1.0 for publishing (M2+M3 minimum? include M4?) — owner call.
 
 ## Changelog (recent)
+- 2026-10-21 (session 3): M1 complete — aspect fixes (exception passthrough, intent-object bug, `@A3Intent` target), unchecked `AccessDeniedException`, RequestCheck SPI + filter with ThreadLocal cleanup, real auto-configuration registration, 19 starter tests, JDK-23 test toolchain pins. 34 tests green total.
 - 2026-10-21 (session 2): Architecture decided; ADRs 0001–0009 accepted; roadmap restructured into M0–M8 around embedded-first, ReBAC-ready, multi-tenant-day-one direction.
 - 2026-10-21 (session 1): Synced remote; fixed RequestContext compile error; tests migrated to resources-list API (15 green); `NOT_APPLICABLE` decision; `@A3SecurePolicy` WIP committed; build output untracked from git; continuity docs added.

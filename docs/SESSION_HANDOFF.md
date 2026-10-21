@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-10-21 (session 3) — M1 complete: starter stabilized
+
+**Goal of session:** implement M1 (stabilize the starter) per ROADMAP.
+
+**What was done:**
+1. **Aspect fixes:** `A3SecurePolicyAspect` no longer wraps everything in `RuntimeException` — typed `AccessDeniedException` reaches callers; on allow it returns the *original* method result (M6 will add per-row filtering). `A3AuthorizationAspect` intent bug fixed: it now builds the intent from the `@A3Intent` parameter (it was passing the join point object). Found & fixed a latent library bug: `@A3Intent` was `@Target(TYPE)` — unusable on parameters, so the `@A3Authorize` expression path could never compile for users; now `@Target(PARAMETER)`.
+2. **`AccessDeniedException` is now unchecked** (was checked `Exception`) so it propagates through proxies.
+3. **RequestCheck SPI (ADR-0001):** `RequestCheck`/`CheckResult`/`RequestCheckChain` (ordered, short-circuit) + `A3RequestCheckFilter` — runs host-app checks (403 + reason on denial) and clears ALL ThreadLocal holders in `finally` (subject/request/intent/target), fixing cross-request state bleed on pooled threads.
+4. **Real auto-configuration:** `@AutoConfiguration` + `META-INF/spring/...AutoConfiguration.imports` registration, `@ConditionalOnMissingBean` back-off on every bean, aspects/builders/holders wired as beans, default `SubjectExtractor` = Spring Security JWT extractor. All `@Component` stereotypes removed from starter classes (double-registration hazard). **Breaking for host apps that relied on component-scanning the package** — the starter now self-registers like a real Boot starter.
+5. **19 starter tests** (builders, holders, both aspects incl. regression tests for both fixed bugs, check chain, filter) + **JDK-23 toolchain fix** (mockito 5.14.2 / byte-buddy 1.15.10 pinned in parent POM — Boot 3.2.5's mockito 5.7 cannot instrument on JDK 23).
+6. README: Intent/Target model section.
+
+**State:** clean tree after commit, local == remote. **34 tests green (15 enforcer + 19 starter), BUILD SUCCESS.**
+
+**Decisions made:** filter order = `HIGHEST_PRECEDENCE + 50` (runs ahead of Spring Security); denial response = 403 text/plain with check reason; M1 post-execution semantics = verify-only, original result returned (filtering deferred to M6).
+
+**Known issues carried forward:** repo filtering not implemented (M2); `getResourceType()` NPE on empty resources (M2); `@A3Authorize` expression value is a trigger flag, not evaluated — its role must be decided; `TargetContextBuilder` reflection is slow & JDK-fragile (its own todo).
+
+**Suggested next steps:** M2 contract evolution (tenant day-1 + DecisionResult + `type:id` + RelationResolver SPI + `a3-core` extraction) — the time-critical milestone; then M3 CEL.
+
+---
+
 ## 2026-10-21 (session 2) — Architecture decisions & ADRs
 
 **Goal of session:** discuss the product vision (full IAM library, policy migrations, runtime admin editing), get an architectural review, and decide direction.

@@ -14,17 +14,16 @@ import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
- * Intercepts methods annotated with @A3Authorize
- * and enforces access control.
+ * Pre-execution enforcement: intercepts methods annotated with {@link A3Authorize},
+ * builds an Intent resource from the {@link A3Intent}-annotated parameter and asks
+ * the enforcer whether the request may proceed (ADR-0004, enforcement point 2).
  */
 @Aspect
-@Component
 public class A3AuthorizationAspect {
     private static final Logger logger = LoggerFactory.getLogger(A3AuthorizationAspect.class);
     private final AccessEnforcer enforcer;
@@ -38,20 +37,19 @@ public class A3AuthorizationAspect {
 
         String expression = a3Authorize.value();
 
-        if(!expression.isEmpty()){
+        if (!expression.isEmpty()) {
             Object intentObject = getIntentObject(joinPoint);
-            if(intentObject != null){
-                // perform preAuthorization checks with intent
-                preAuthorize(joinPoint);
-            }else{
-                logger.debug("static use of an expression directly in @A3Authorize() annotation requires the use of @A3Intent in the method parameter to mark the resource to be used in the comparison");
+            if (intentObject != null) {
+                preAuthorize(intentObject);
+            } else {
+                logger.debug("@A3Authorize(\"{}\") has no @A3Intent-annotated parameter to build an intent from; no pre-check performed", expression);
             }
         }
 
         return joinPoint.proceed();
     }
 
-    private Object getIntentObject(ProceedingJoinPoint joinPoint){
+    private Object getIntentObject(ProceedingJoinPoint joinPoint) {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Annotation[][] parameterAnnotations = methodSignature.getMethod().getParameterAnnotations();
         Object[] args = joinPoint.getArgs();
@@ -66,14 +64,12 @@ public class A3AuthorizationAspect {
         return null;
     }
 
-    private void preAuthorize(Object intentObject) throws AccessDeniedException {
+    private void preAuthorize(Object intentObject) {
         Resource intent = IntentContentHolder.getCurrentIntent(intentObject);
         RequestContext context = RequestContextHolder.getRequestContext(List.of(intent));
 
-        boolean allowed = enforcer.enforce(context);
-
-        if (!allowed) {
-            throw new AccessDeniedException("Access Denied"); // use A3AccessDeniedException
+        if (!enforcer.enforce(context)) {
+            throw new AccessDeniedException("Access Denied");
         }
     }
 

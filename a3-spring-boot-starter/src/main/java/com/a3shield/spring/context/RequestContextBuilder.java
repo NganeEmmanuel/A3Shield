@@ -2,11 +2,9 @@ package com.a3shield.spring.context;
 
 import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.enforcer.model.Resource;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
 public class RequestContextBuilder {
 
     public RequestContext buildRequestContext(List<Resource> resource) {

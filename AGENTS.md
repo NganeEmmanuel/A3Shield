@@ -24,12 +24,13 @@ a3shield (parent pom, v0.1.0)
 │   ├── action/, effect/, policy/, permission/  # Action, Effect, Policy, Permission models
 │   └── context/             # RequestContext (subject + resources list + action + context map)
 └── a3-spring-boot-starter   # Spring Boot integration
-    ├── annotation/          # @A3Authorize, @A3HasRoles, @A3HasPermissions, @A3Intent, @A3SecurePolicy
+    ├── annotation/          # @A3Authorize, @A3HasRoles, @A3HasPermissions, @A3Intent (PARAMETER), @A3SecurePolicy
     ├── aspect/              # A3AuthorizationAspect (pre-check), A3SecurePolicyAspect (post-execution check)
+    ├── check/               # RequestCheck SPI + CheckResult + RequestCheckChain + A3RequestCheckFilter
     ├── context/             # ThreadLocal holders + builders: Request, Subject, Target, Intent
     ├── security/            # SubjectExtractor interface + SpringSecuritySubjectContextExtractor
-    ├── config/              # A3AutoConfiguration, InterceptorConfig
-    └── exceptions/          # AccessDeniedException
+    ├── config/              # A3AutoConfiguration + A3WebConfiguration (registered via AutoConfiguration.imports)
+    └── exceptions/          # AccessDeniedException (unchecked)
 ```
 
 **Key design points:**
@@ -55,17 +56,20 @@ mvn -pl a3-spring-boot-starter test   # starter only (currently has NO tests)
 
 - `master` branch, direct commits (no PR flow yet for solo work). Commit style: short lowercase summary lines, descriptive body is fine.
 - **Never commit `target/`** (build output). It is gitignored now; keep it that way.
+- **Starter classes carry no `@Component`/stereotype annotations** — everything is registered via `A3AutoConfiguration`/`A3WebConfiguration` with `@ConditionalOnMissingBean` back-off. Adding a stereotype re-registers the bean twice when host apps scan the package.
 - Javadoc-style `<p>` docs on public contracts in `a3-enforcer`; the starter is less documented.
-- Tests: JUnit 5 + AssertJ, live in `a3-enforcer/src/test`. Builders (Lombok `@Builder`) are the standard construction style.
+- Tests: JUnit 5 + AssertJ + Mockito (mockito 5.14/byte-buddy 1.15 pinned in the parent POM for JDK 23). Aspect tests use `AspectJProxyFactory`; holder/filter tests must clear ThreadLocals in `@AfterEach`.
+- Builders (Lombok `@Builder`) are the standard construction style.
 
-## Known Issues / Gotchas (as of 2026-10-21)
+## Known Issues / Gotchas (as of 2026-10-21, post-M1)
 
-1. **`A3SecurePolicyAspect` swallows its own denial** — the `catch (Throwable)` wraps `AccessDeniedException` in a plain `RuntimeException`, so callers can't catch the typed exception. Also it returns the *transformed* `targets` list, not the raw method result.
-2. **`InMemoryPolicyRepository.findAll(action, resourceType)` ignores its args** — no filtering yet.
-3. `RequestContext.getResourceType()` throws NPE when resources are empty — the engine calls it on every evaluate; contexts without resources will blow up.
-4. README + `docs/architecture/*` describe modules that **don't exist** (`a3-core`, `a3-auth`, `a3-access`, `a3-gateway`, `a3-sdk`). Treat them as vision docs, not reality.
-5. No CI, no starter tests, no publish setup (local install only).
-6. Minor: `Target`'s logger references `Intent.class`; typo "must nut be" in `RequestContext` error message.
+1. **`InMemoryPolicyRepository.findAll(action, resourceType)` ignores its args** — no filtering yet (M2).
+2. `RequestContext.getResourceType()` throws NPE when resources are empty — the engine calls it on every evaluate; contexts without resources will blow up (M2).
+3. `@A3Authorize`'s expression value is only a trigger flag — it is not evaluated against the intent; enforcement is entirely policy-driven. Deciding the expression's role is open.
+4. `TargetContextBuilder` uses raw reflection (`setAccessible`) — breaks on JDK internals (e.g. String fields) and is flagged "too slow" by its author; fine for app POJOs for now.
+5. README + `docs/architecture/*` describe modules that **don't exist** (`a3-core`, `a3-auth`, `a3-access`, `a3-gateway`, `a3-sdk`). Treat them as vision docs, not reality. (README now has an accurate Intent/Target section.)
+6. No CI, no publish setup (local install only).
+7. Minor: `Target`'s logger references `Intent.class`; typo "must nut be" in `RequestContext` error message.
 
 ## Continuity Workflow (how sessions stay coherent)
 

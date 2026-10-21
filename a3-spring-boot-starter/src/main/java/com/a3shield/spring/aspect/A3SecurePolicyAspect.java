@@ -12,37 +12,41 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Post-execution enforcement: intercepts methods annotated with
+ * {@link A3SecurePolicy}, runs the method, converts its return value into
+ * target resources and asks the enforcer whether that data may leave
+ * (ADR-0004, enforcement point 3).
+ *
+ * <p>M1 semantics: the original return value is passed through unchanged when
+ * access is allowed; denial throws {@link AccessDeniedException} as-is.
+ * Per-row filtering of collection results replaces the all-or-nothing check
+ * in M6.</p>
+ */
 @Aspect
-@Component
 public class A3SecurePolicyAspect {
     private static final Logger logger = LoggerFactory.getLogger(A3SecurePolicyAspect.class);
     private final AccessEnforcer enforcer;
 
-    public A3SecurePolicyAspect(AccessEnforcer accessEnforcer){
-        enforcer = accessEnforcer;    }
+    public A3SecurePolicyAspect(AccessEnforcer accessEnforcer) {
+        this.enforcer = accessEnforcer;
+    }
 
     @Around("@annotation(a3SecurePolicy)")
-    public List<?> securePolicy(ProceedingJoinPoint joinPoint, A3SecurePolicy a3SecurePolicy){
-        // run the method and get the return value(target)
-        try {
-            Object result = joinPoint.proceed();
-            List<Resource> targets = TargetContextHolder.getTargetContext(result);
-            RequestContext context = RequestContextHolder.getRequestContext(targets);
+    public Object securePolicy(ProceedingJoinPoint joinPoint, A3SecurePolicy a3SecurePolicy) throws Throwable {
+        Object result = joinPoint.proceed();
 
-            boolean allowed = enforcer.enforce(context);
+        List<Resource> targets = TargetContextHolder.getTargetContext(result);
+        RequestContext context = RequestContextHolder.getRequestContext(targets);
 
-            if (!allowed) {
-                //            throw new RuntimeException("Access Denied");
-                throw new AccessDeniedException("Access Denied");
-            }
-
-            return targets;
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+        if (!enforcer.enforce(context)) {
+            throw new AccessDeniedException("Access Denied by policy for returned target(s) of type "
+                    + (targets.isEmpty() ? "<none>" : targets.getFirst().resolve("type")));
         }
+
+        return result;
     }
 }

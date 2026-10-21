@@ -55,6 +55,28 @@ a3shield/
     └── ISSUE_TEMPLATE/
 ```
 
+## 🎯 The Intent / Target Model
+
+A3Shield authorizes a request in two moments, not one:
+
+* **Intent — before execution.** What is the caller trying to do? With
+  `@A3Authorize("...")` plus an `@A3Intent`-marked parameter, the enforcer
+  decides whether the request may proceed at all.
+* **Target — after execution.** What data is actually leaving? A method
+  annotated with `@A3SecurePolicy` has its return value converted into target
+  resources and re-checked against policy — so a response can be denied (and
+  later, filtered row-by-row) even when the request itself was allowed.
+
+```
+request → [RequestCheck chain] → [Intent check: may this request proceed?]
+        → method runs → [Target check: may this data leave?] → response
+```
+
+Both checks (plus a future route-level check) feed the same policy engine —
+one policy format, RBAC/PBAC/ABAC together.
+
+---
+
 ## 🧱 Modular Architecture
 
 A3Shield is designed as a **composable system of independent modules**:
