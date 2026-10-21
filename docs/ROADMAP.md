@@ -1,52 +1,82 @@
 # A3Shield Roadmap & Task Tracker
 
-> Living document. Check items off, add new ones. Detailed product breakdown from the owner is pending and will be merged in when provided.
+> Living document. Check items off, add new ones. Strategic decisions are recorded in `docs/adr/` — this file sequences the work that implements them.
 
-## Milestone Status
+## Target module structure (direction)
 
-### M0 — Core policy engine (a3-enforcer) ✅ WORKING
+```
+a3-core             models, DecisionResult, errors (zero deps) — extracted from a3-enforcer in M2
+a3-enforcer         evaluation engine (CEL-backed), PolicySource SPI, tenant-aware — stays Spring-free (ADR-0007)
+a3-policy-mgmt      policy migrations, runner, drift detection, admin API, audit, policy tests (ADR-0003)
+a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, SubjectExtractor, TenantResolver
+(a3-auth-adapter)   later, optional, never core (ADR-0001)
+(a3-server)         possible future PDP wrapper — not on near roadmap (ADR-0007)
+```
+
+## Milestones
+
+### M0 — Core policy engine (a3-enforcer) ✅ DONE
 - [x] Contracts: PolicyRepository, PolicyMatcher, ConditionEvaluator, DecisionCombiner, PolicyEngine
-- [x] Default implementations for all of the above
-- [x] Expression parser (`==`, `!=`, `>`, `<`) + ValueResolver
-- [x] DSL evaluator with `AND`/`OR`, ANY-match semantics for list values
-- [x] Thread-safe ExpressionCache
-- [x] Decision model: ALLOW / DENY / **NOT_APPLICABLE** (added 2026-10-21; condition-false ≠ DENY)
-- [x] In-memory repository + 15 passing tests
+- [x] Default implementations; expression parser (`==`, `!=`, `>`, `<`); DSL evaluator with AND/OR, ANY-match list semantics
+- [x] Thread-safe ExpressionCache; in-memory repository; 15 passing tests
+- [x] Decision model incl. NOT_APPLICABLE; resources-as-list with homogeneity validation
 
-### M1 — Spring Boot integration ✅ COMPILES, PARTIALLY WIRED
-- [x] Auto-configuration (A3AutoConfiguration, InterceptorConfig)
-- [x] Annotations: `@A3Authorize`, `@A3HasRoles`, `@A3HasPermissions`, `@A3Intent`, `@A3SecurePolicy`
-- [x] Aspects: A3AuthorizationAspect (pre), A3SecurePolicyAspect (post-execution)
-- [x] ThreadLocal context holders/builders: Request, Subject, Target, Intent
-- [x] SubjectExtractor decoupled; Spring Security default impl (JWT-based)
-- [x] AccessDeniedException
-- [ ] **Fix:** A3SecurePolicyAspect wraps AccessDeniedException in RuntimeException (denials lose their type) and returns transformed targets instead of raw result
-- [ ] Temporal `hasPermissions`/`hasRoles` implementations need hardening
-- [ ] Starter module has **zero tests** — needs at least context-builder + aspect unit tests
+### M1 — Stabilize the starter 🔜 NEXT
+- [ ] Fix `A3SecurePolicyAspect`: typed `AccessDeniedException` must reach callers (no Throwable-wrap); return-value semantics clarified
+- [ ] Starter unit tests: context builders first, then aspects with a mocked enforcer
+- [ ] Document Intent-vs-Target mental model in code + README section
+- [ ] RequestCheck chain SPI in the starter (ADR-0001): pluggable perimeter checks, no built-in CORS/rate-limit
 
-### M2 — Enforcer hardening 🔜 NEXT
-- [ ] Implement filtering in `InMemoryPolicyRepository.findAll(action, resourceType)` (args currently ignored)
-- [ ] Decide & handle empty-resources behavior (`getResourceType()` currently throws NPE)
-- [ ] Verify DefaultDecisionCombiner semantics with NOT_APPLICABLE (empty decision list → default DENY)
-- [ ] DSL: parentheses/grouping, `>=`, `<=`, string literals beyond bare words
-- [ ] PermissionRepository is a stub — wire permission-based checks
+### M2 — Contract evolution (breaking, do while small) 📋 PLANNED
+*Implements ADR-0005, ADR-0008 §1–2, ADR-0009. One coordinated breaking release, before anything is published.*
+- [ ] Extract `a3-core` (models, DecisionResult, errors — zero deps)
+- [ ] `DecisionResult` replaces boolean across PolicyEngine/AccessEnforcer; `AccessDeniedException` carries it (ADR-0005)
+- [ ] Tenant dimension: `RequestContext` carries tenant; `Policy.tenantId` (+ `*` global scope); repo → `findAll(tenantId, action, resourceType)`; tenant-aware cache keys; matcher checks tenant first (ADR-0009)
+- [ ] `TenantResolver` hook in starter (header/subdomain/claim); `default` tenant zero-config fallback
+- [ ] Resource identity convention `type:id` everywhere; `Intent` gains `id` (ADR-0008)
+- [ ] `RelationResolver` SPI added (map-based test impl only) + `relations` reserved section in policy format (ADR-0008)
+- [ ] Tenant-scope precedence tests (tenant policy vs global policy vs DENY-overrides)
 
-### M3 — Real-world validation 🔜
-- [ ] Example app (separate module or repo) using the starter end-to-end
-- [ ] JDBC- or file-backed PolicyRepository
-- [ ] README rewrite to match reality (current README lists modules that don't exist)
-- [ ] CI: GitHub Actions running `mvn test` on push/PR
+### M3 — CEL evaluation engine 📋 PLANNED (ADR-0002)
+- [ ] Add `cel-java` to enforcer; `CelConditionEvaluator` behind the SPI with deadline/complexity budget
+- [ ] Register custom functions bridge (prep for `related()`); simple-syntax facade for legacy conditions (`.exists()` for ANY-match)
+- [ ] Evaluation parity test suite: every legacy DSL expression verified against CEL result
 
-### M4 — Vision items (from README, unprioritized)
-- [ ] Authentication module (a3-auth: JWT, MFA) — not started
-- [ ] Distributed policy engine / multi-tenant
-- [ ] Admin dashboard, JS/Python SDKs, OAuth integrations
+### M4 — Policy lifecycle: migrations 📋 PLANNED (ADR-0003)
+- [ ] Decide policy file format: JSON vs YAML (last open format question)
+- [ ] `a3-policy-mgmt` module: file layout `a3/policies/V<n>__<name>`, tenant-scope header, checksums
+- [ ] `PolicyMigrationRunner`: apply-on-startup, applied-versions tracking, `onConflict` (FAIL default / OVERWRITE / SKIP)
+- [ ] Policy tests embedded in files; apply aborts on test failure
+- [ ] Persistent `PolicyStore` (JDBC impl) alongside in-memory; `PolicySource` SPI
 
-## Open Design Questions (owner input wanted)
-1. Should `@A3SecurePolicy` support per-annotation policy overrides (effect, condition)?
-2. Target/Intent duality: is the long-term plan *both* pre-execution (intent) and post-execution (target) checks on the same endpoint?
-3. Ownership model for `Permission` vs `Policy` — how do PBAC checks relate to policy evaluation?
-4. What does v0.1.0 need to include before publishing to Maven Central / GitHub Packages?
+### M5 — Runtime admin layer 📋 PLANNED (ADR-0003, ADR-0007)
+- [ ] `PolicyAdminApi` SPI + REST exposure in starter (always tenant-scoped)
+- [ ] Validate-before-commit (run policy tests on every mutation); audit log (who/when/diff)
+- [ ] Drift report endpoint (file vs store); cache invalidation strategy for multi-instance deployments
+
+### M6 — Post-execution per-row filtering 📋 PLANNED (ADR-0004)
+- [ ] `@A3SecurePolicy` per-row filtering for collections; single-object deny-or-allow; documented default + strict mode
+- [ ] Route-level interceptor enforcement (intent check from route/method/params)
+- [ ] Audit events at all three enforcement points
+
+### M7 — ReBAC implementation 🔮 FUTURE (ADR-0008)
+- [ ] Graph-backed `RelationResolver` (or delegate to OpenFGA/SpiceDB behind the SPI — separate ADR when reached)
+- [ ] `related()` CEL function end-to-end; freeze preview contracts
+
+### M8 — Distribution & credibility 🔮 FUTURE
+- [ ] Example app using the starter end-to-end; README rewrite to match reality
+- [ ] CI (GitHub Actions: build + test on push/PR); publish to GitHub Packages/Maven Central
+
+### Vision backlog (unprioritized, from README)
+- [ ] a3-auth-adapter (login-flow conveniences — adapter, never core)
+- [ ] a3-server PDP mode; admin dashboard; JS/Python SDKs; distributed evaluation
+
+## Open Design Questions
+1. Policy file format: JSON vs YAML (decide at M4 kickoff).
+2. Per-row filtering default: silent filter vs deny-on-any-failure (ADR-0004 leans silent-with-strict-option — confirm with example app in M6).
+3. Cache invalidation mechanism for clustered deployments: TTL vs poll vs pub-sub (decide in M5).
+4. What exactly goes into v0.1.0 for publishing (M2+M3 minimum? include M4?) — owner call.
 
 ## Changelog (recent)
-- 2026-10-21: Synced remote; fixed RequestContext compile error; tests migrated to resources-list API (15 green); `NOT_APPLICABLE` decision; `@A3SecurePolicy` WIP committed; build output untracked from git; continuity docs added.
+- 2026-10-21 (session 2): Architecture decided; ADRs 0001–0009 accepted; roadmap restructured into M0–M8 around embedded-first, ReBAC-ready, multi-tenant-day-one direction.
+- 2026-10-21 (session 1): Synced remote; fixed RequestContext compile error; tests migrated to resources-list API (15 green); `NOT_APPLICABLE` decision; `@A3SecurePolicy` WIP committed; build output untracked from git; continuity docs added.

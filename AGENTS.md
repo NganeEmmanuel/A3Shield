@@ -2,6 +2,8 @@
 
 Read this before making any change. It reflects the **actual** state of the codebase, not the aspirational README.
 
+**Strategic direction (decided 2026-10-21, see `docs/adr/`):** embedded library first (no external PDP); authorization-only core, identity consumed via `SubjectExtractor`; CEL as expression engine; multi-tenant policies are a day-one contract constraint; ReBAC contracts reserved now, implemented later; policies defined as versioned migration files + runtime admin editing with guardrails. Architecture decisions live in `docs/adr/` — **accepted ADRs are immutable** (supersede, never edit); never implement against a superseded/rejected ADR.
+
 ## What A3Shield Is
 
 A Java 23 / Maven multi-module library for **policy-driven authorization** (RBAC, PBAC, ABAC) with a Spring Boot starter integration. Think "framework-agnostic policy engine + Spring glue". Authentication is a possible future module — **all work so far is authorization**.
@@ -67,7 +69,7 @@ mvn -pl a3-spring-boot-starter test   # starter only (currently has NO tests)
 
 ## Continuity Workflow (how sessions stay coherent)
 
-1. **Start of session:** read this file + `docs/ROADMAP.md` + `docs/SESSION_HANDOFF.md` (latest entry at top).
+1. **Start of session:** read this file + `docs/ROADMAP.md` + `docs/SESSION_HANDOFF.md` (latest entry at top) + any ADRs relevant to the work at hand (`docs/adr/README.md` index).
 2. **During work:** keep commits small; run `mvn test` before each commit.
 3. **End of session:** prepend a dated entry to `docs/SESSION_HANDOFF.md` (what changed / decisions / next steps), update `docs/ROADMAP.md` checkboxes, commit + push.
 
