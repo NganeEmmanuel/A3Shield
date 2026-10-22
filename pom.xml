@@ -64,6 +64,7 @@
     </dependencyManagement>
 
     <modules>
+        <module>a3-core</module>
         <module>a3-enforcer</module>
         <module>a3-spring-boot-starter</module>
     </modules>

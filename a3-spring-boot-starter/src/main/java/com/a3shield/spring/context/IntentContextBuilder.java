@@ -1,7 +1,7 @@
 package com.a3shield.spring.context;
 
-import com.a3shield.enforcer.model.Intent;
-import com.a3shield.enforcer.model.Resource;
+import com.a3shield.core.model.Intent;
+import com.a3shield.core.model.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +24,7 @@ public class IntentContextBuilder {
         }
 
         return Intent.builder()
+                .id(attributes.get("id") != null ? String.valueOf(attributes.get("id")) : null)
                 .type(object.getClass().getSimpleName())
                 .attributes(attributes)
                 .build();

@@ -2,13 +2,14 @@ package com.a3shield.spring.aspect;
 
 import com.a3shield.enforcer.AccessEnforcer;
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.Resource;
+import com.a3shield.core.decision.DecisionResult;
+import com.a3shield.core.model.Resource;
 import com.a3shield.spring.annotation.A3Authorize;
 
 import com.a3shield.spring.annotation.A3Intent;
 import com.a3shield.spring.context.IntentContentHolder;
 import com.a3shield.spring.context.RequestContextHolder;
-import com.a3shield.spring.exceptions.AccessDeniedException;
+import com.a3shield.core.exception.AccessDeniedException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -68,8 +69,9 @@ public class A3AuthorizationAspect {
         Resource intent = IntentContentHolder.getCurrentIntent(intentObject);
         RequestContext context = RequestContextHolder.getRequestContext(List.of(intent));
 
-        if (!enforcer.enforce(context)) {
-            throw new AccessDeniedException("Access Denied");
+        DecisionResult result = enforcer.enforce(context);
+        if (!result.isAllowed()) {
+            throw new AccessDeniedException("Access Denied: " + result.reason(), result);
         }
     }
 

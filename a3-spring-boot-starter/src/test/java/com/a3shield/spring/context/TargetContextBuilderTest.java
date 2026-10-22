@@ -1,7 +1,7 @@
 package com.a3shield.spring.context;
 
-import com.a3shield.enforcer.model.Resource;
-import com.a3shield.enforcer.model.Target;
+import com.a3shield.core.model.Resource;
+import com.a3shield.core.model.Target;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

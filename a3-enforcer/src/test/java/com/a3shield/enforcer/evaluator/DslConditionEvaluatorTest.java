@@ -1,7 +1,7 @@
 package com.a3shield.enforcer.evaluator;
 
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.*;
+import com.a3shield.core.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

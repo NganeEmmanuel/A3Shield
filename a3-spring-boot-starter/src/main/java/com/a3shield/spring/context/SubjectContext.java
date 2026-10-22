@@ -1,6 +1,6 @@
 package com.a3shield.spring.context;
 
-import com.a3shield.enforcer.model.Subject;
+import com.a3shield.core.model.Subject;
 import com.a3shield.spring.security.SubjectExtractor;
 
 public class SubjectContext {

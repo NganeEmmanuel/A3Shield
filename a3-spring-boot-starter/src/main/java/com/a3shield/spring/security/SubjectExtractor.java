@@ -1,6 +1,6 @@
 package com.a3shield.spring.security;
 
-import com.a3shield.enforcer.model.Subject;
+import com.a3shield.core.model.Subject;
 
 /**
  * Extracts the {@link Subject} for the current request from the host

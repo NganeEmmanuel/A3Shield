@@ -1,32 +1,35 @@
-package com.a3shield.enforcer.model;
+package com.a3shield.core.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.management.AttributeNotFoundException;
 import java.util.Map;
 
+/**
+ * <p><b>Target</b> is the resource being acted on — typically built from a
+ * method's return value and checked post-execution by
+ * {@code @A3SecurePolicy}.</p>
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Intent extends Resource {
+public class Target extends Resource {
+    private String id;
     private String type;
     private Map<String, Object> attributes;
-    private static final Logger logger = LoggerFactory.getLogger(Intent.class);
 
     @Override
     public Object resolve(String field) {
+        if ("id".equals(field)) return id;
         if ("type".equals(field)) return type;
 
         if (attributes == null || !attributes.containsKey(field)) {
-            logger.debug("Missing attribute '{}' on resource {}", field, this);
             return null;
         }
+
         return attributes.get(field);
     }
 }

@@ -1,6 +1,6 @@
 package com.a3shield.spring.context;
 
-import com.a3shield.enforcer.model.Resource;
+import com.a3shield.core.model.Resource;
 
 public class IntentContentHolder {
     private static final ThreadLocal<Resource>  CURRENT_INTENT = new ThreadLocal<>();

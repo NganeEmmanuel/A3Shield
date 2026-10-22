@@ -1,4 +1,4 @@
-package com.a3shield.enforcer.model;
+package com.a3shield.core.model;
 
 public enum SubjectType {
     USER,

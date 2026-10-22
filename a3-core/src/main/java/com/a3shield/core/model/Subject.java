@@ -1,10 +1,15 @@
-package com.a3shield.enforcer.model;
+package com.a3shield.core.model;
 
 import lombok.*;
 
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * <p><b>Subject</b> is the authenticated principal the evaluation is about.
+ * Identity is established by the host application (ADR-0001); the subject is
+ * only ever consumed here.</p>
+ */
 @Getter
 @Setter
 @Builder

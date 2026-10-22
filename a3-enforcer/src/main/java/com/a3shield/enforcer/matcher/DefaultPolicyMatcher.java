@@ -1,11 +1,10 @@
 package com.a3shield.enforcer.matcher;
 
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.Resource;
-import com.a3shield.enforcer.model.Subject;
+import com.a3shield.core.model.Resource;
+import com.a3shield.core.model.Subject;
 import com.a3shield.enforcer.policy.Policy;
 
-import javax.management.AttributeNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,28 +16,17 @@ import java.util.stream.Collectors;
  *
  * <p>This matcher evaluates:</p>
  * <ul>
+ *   <li>Tenant scope — policy must be global or scoped to the request's tenant (ADR-0009).</li>
  *   <li>Resource type matching between policy and request.</li>
  *   <li>Action name matching between policy and request.</li>
  *   <li>Subject attribute matching between policy and request subject.</li>
  * </ul>
- *
- * <p>Policies that satisfy all applicable conditions are returned
- * as a list of matching policies.</p>
  *
  * <p><b>Thread-safety:</b> This implementation is stateless and
  * safe for concurrent use.</p>
  */
 public class DefaultPolicyMatcher implements PolicyMatcher {
 
-    /**
-     * <p>Filter the provided list of policies to those that match
-     * the given request context.</p>
-     *
-     * @param context the request context containing subject, resource,
-     *                and action attributes; must not be null
-     * @param policies the list of candidate policies to evaluate; must not be null
-     * @return a non-null list of {@link Policy} objects that match the request context
-     */
     @Override
     public List<Policy> match(RequestContext context, List<Policy> policies) {
         return policies.stream()
@@ -55,6 +43,12 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
      */
     private boolean matches(Policy policy, RequestContext context) {
 
+        // ADR-0009: tenant scope first — global or exact tenant match
+        if (!policy.effectiveTenantId().equals(context.getTenantId())
+                && !"*".equals(policy.effectiveTenantId())) {
+            return false;
+        }
+
         List<Resource> resources = context.getResources();
 
         // Match resource type
@@ -66,10 +60,12 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
             if (!match) return false;
         }
 
-        // Match action
-        if (policy.getAction() != null &&
-                !policy.getAction().equalsIgnoreCase(context.getAction().getName())) {
-            return false;
+        // Match action (null request action never satisfies a constrained policy)
+        if (policy.getAction() != null) {
+            if (context.getAction() == null || context.getAction().getName() == null
+                    || !policy.getAction().equalsIgnoreCase(context.getAction().getName())) {
+                return false;
+            }
         }
 
         // Match subject

@@ -50,6 +50,13 @@
         </dependency>
 
 
+        <!-- A3 Core (models, decisions, exceptions) -->
+        <dependency>
+            <groupId>com.a3shield</groupId>
+            <artifactId>a3-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- A3 Enforcer -->
         <dependency>
             <groupId>com.a3shield</groupId>

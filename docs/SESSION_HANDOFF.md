@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-10-22 (session 4) — M2 complete: contract evolution (tenant day-1, DecisionResult, a3-core)
+
+**Goal of session:** implement M2 per ROADMAP — the coordinated breaking contract release.
+
+**What was done:**
+1. **`a3-core` extracted** (ADR-0007): models (Subject/SubjectType/Resource/Target/Intent), Decision + **DecisionResult**, AccessDeniedException, Tenants — zero runtime deps (Lombok compile-time only). Packages moved: `enforcer.model.*` → `core.model.*`; `AccessDeniedException` now `core.exception` (unchecked, carries DecisionResult). Enforcer depends on core; starter depends on both.
+2. **DecisionResult (ADR-0005):** `PolicyEngine.evaluate` and `AccessEnforcer.enforce` return `DecisionResult` (decision, matchedPolicyIds, reason, obligations); `AccessEnforcer.allow()` boolean helper; aspects throw `AccessDeniedException(msg, result)` — callers/exception handlers can now explain denials.
+3. **Tenant day-one (ADR-0009):** `RequestContext.tenantId` (never null; `default` fallback), `Policy.tenantId` (`*` = global), `PolicyRepository.findAll(tenantId, action, resourceType)` — **real filtering implemented** (was a no-op returning everything), matcher checks tenant first, engine applies **most-specific-scope-wins**: tenant policies override global when both apply; global only when no tenant policy is applicable. Starter: `TenantResolver` SPI (`DefaultTenantResolver` → `default`), `TenantContextHolder` set by `A3RequestCheckFilter` and cleared in its finally.
+4. **ReBAC readiness (ADR-0008):** `Resource.urn()` = `type:id` convention (+ tests), `Intent.id` populated by the builder, `RelationResolver` SPI + `InMemoryRelationResolver` (map-based; engine does not call it yet — M7), `Policy.relations` reserved section.
+5. Null-safety: `getResourceType()` returns null on empty (was NPE); matcher tolerates null request action.
+6. **52 tests green** (3 core / 27 enforcer / 22 starter) — new: tenant precedence (tenant-over-global, global fallback, cross-tenant isolation, default-tenant), repository filtering, URN convention, relation resolver, tenant propagation through holders/filter.
+
+**State:** clean tree after commit, local == remote. BUILD SUCCESS, all three modules.
+
+**Decisions made:** tenant precedence = most-specific-APPLICABLE-scope wins (partition happens after matching, so a tenant policy that doesn't match the subject falls back to global — tested); repository returns tenant + global candidates, engine picks the scope; `DecisionResult` keeps record-style accessors (`decision()`, `reason()`, `matchedPolicyIds()`, `isAllowed()`).
+
+**Known issues carried forward:** `@A3Authorize` expression still a trigger flag (decide role in M3); TargetContextBuilder reflection; obligations plumbed but not declarable; A3HasRoles/A3HasPermissions still unwired WIP; package moves break pre-M2 host code.
+
+**Suggested next steps:** M3 — CEL evaluation engine (add cel-java, `CelConditionEvaluator` behind the SPI, deadline budget, parity suite vs the legacy DSL; decide fate of `@A3Authorize`'s expression value there).
+
+---
+
 ## 2026-10-21 (session 3) — M1 complete: starter stabilized
 
 **Goal of session:** implement M1 (stabilize the starter) per ROADMAP.

@@ -16,6 +16,13 @@
     </parent>
 
     <dependencies>
+        <!-- A3 Core (shared models, decisions, errors) -->
+        <dependency>
+            <groupId>com.a3shield</groupId>
+            <artifactId>a3-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

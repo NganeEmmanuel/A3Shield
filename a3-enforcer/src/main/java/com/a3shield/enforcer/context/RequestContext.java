@@ -1,7 +1,9 @@
 package com.a3shield.enforcer.context;
 
 import com.a3shield.enforcer.action.Action;
-import com.a3shield.enforcer.model.*;
+import com.a3shield.core.model.Resource;
+import com.a3shield.core.model.Subject;
+import com.a3shield.core.tenant.Tenants;
 import lombok.*;
 
 import java.util.List;
@@ -20,14 +22,24 @@ public class RequestContext {
     private List<Resource> resources;
     private Action action;
     private Map<String, Object> context; // time, location, ip, metadata, etc.
+    @Getter(AccessLevel.NONE)
+    private String tenantId; // ADR-0009: every evaluation is tenant-scoped
 
-    public RequestContext(Subject subject, List<Resource> resources, Action action, Map<String, Object> context) {
+    public RequestContext(Subject subject, List<Resource> resources, Action action,
+                          Map<String, Object> context, String tenantId) {
         this.subject = subject;
         this.resources = resources;
         this.action = action;
         this.context = context;
+        this.tenantId = tenantId;
         validateResources(resources);
     }
+
+    /** The tenant this evaluation is scoped to; never null (defaults to {@link Tenants#DEFAULT_TENANT}). */
+    public String getTenantId() {
+        return tenantId == null ? Tenants.DEFAULT_TENANT : tenantId;
+    }
+
     private void validateResources(List<Resource> resources) {
         if (resources == null || resources.isEmpty()) return;
 
@@ -42,9 +54,11 @@ public class RequestContext {
         }
     }
 
-    public String getResourceType(){
-        if(resources == null || resources.isEmpty()) throw new NullPointerException("Resource must nut be empty or null");
-        return resources.getFirst().resolve("type").toString();
+    /** The (homogeneous) resource type of this request, or null when the request carries no resources. */
+    public String getResourceType() {
+        if (resources == null || resources.isEmpty()) return null;
+        Object type = resources.getFirst().resolve("type");
+        return type != null ? type.toString() : null;
     }
 
 }

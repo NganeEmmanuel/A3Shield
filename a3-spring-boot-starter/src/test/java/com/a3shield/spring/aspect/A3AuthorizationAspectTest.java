@@ -2,14 +2,15 @@ package com.a3shield.spring.aspect;
 
 import com.a3shield.enforcer.AccessEnforcer;
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.Subject;
-import com.a3shield.enforcer.model.SubjectType;
+import com.a3shield.core.decision.DecisionResult;
+import com.a3shield.core.model.Subject;
+import com.a3shield.core.model.SubjectType;
 import com.a3shield.spring.annotation.A3Authorize;
 import com.a3shield.spring.annotation.A3Intent;
 import com.a3shield.spring.context.IntentContentHolder;
 import com.a3shield.spring.context.RequestContextHolder;
 import com.a3shield.spring.context.SubjectContext;
-import com.a3shield.spring.exceptions.AccessDeniedException;
+import com.a3shield.core.exception.AccessDeniedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +69,7 @@ class A3AuthorizationAspectTest {
 
     @Test
     void shouldProceedWhenEnforcerAllows() {
-        when(enforcer.enforce(any(RequestContext.class))).thenReturn(true);
+        when(enforcer.enforce(any(RequestContext.class))).thenReturn(DecisionResult.allow("test allow"));
 
         String result = proxiedService().submit(new Order("o-1"));
 
@@ -77,7 +78,7 @@ class A3AuthorizationAspectTest {
 
     @Test
     void shouldThrowTypedAccessDeniedExceptionWhenDenied() {
-        when(enforcer.enforce(any(RequestContext.class))).thenReturn(false);
+        when(enforcer.enforce(any(RequestContext.class))).thenReturn(DecisionResult.deny("test deny"));
 
         assertThatThrownBy(() -> proxiedService().submit(new Order("o-1")))
                 .isInstanceOf(AccessDeniedException.class);
@@ -87,7 +88,7 @@ class A3AuthorizationAspectTest {
     void shouldBuildIntentFromAnnotatedParameterNotJoinPoint() {
         // regression: preAuthorize used to receive the JoinPoint instead of the
         // @A3Intent parameter, so the evaluated "intent" was the join point object
-        when(enforcer.enforce(any(RequestContext.class))).thenReturn(true);
+        when(enforcer.enforce(any(RequestContext.class))).thenReturn(DecisionResult.allow("test allow"));
         ArgumentCaptor<RequestContext> captor = ArgumentCaptor.forClass(RequestContext.class);
 
         proxiedService().submit(new Order("o-42"));

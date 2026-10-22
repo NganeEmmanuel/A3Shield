@@ -1,9 +1,11 @@
 package com.a3shield.spring.context;
 
+import com.a3shield.core.tenant.Tenants;
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.Subject;
-import com.a3shield.enforcer.model.SubjectType;
-import com.a3shield.enforcer.model.Target;
+import com.a3shield.core.model.Subject;
+import com.a3shield.core.model.SubjectType;
+import com.a3shield.core.model.Target;
+import com.a3shield.spring.tenant.TenantContextHolder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,20 @@ class HoldersTest {
         SubjectContext.clearCurrentSubject();
         RequestContextHolder.clearRequestContext();
         TargetContextHolder.clearTargetContext();
+        TenantContextHolder.clear();
+    }
+
+    @Test
+    void requestContextShouldCarryTenantFromHolder() {
+        TenantContextHolder.setTenantId("acme");
+
+        RequestContext ctx = RequestContextHolder.getRequestContext(
+                List.of(Target.builder().id("1").type("Document").build()));
+
+        assertThat(ctx.getTenantId()).isEqualTo("acme");
+
+        TenantContextHolder.clear();
+        assertThat(TenantContextHolder.getTenantId()).isEqualTo(Tenants.DEFAULT_TENANT);
     }
 
     @Test
@@ -70,7 +86,7 @@ class HoldersTest {
 
     @Test
     void targetContextShouldRoundTripAndClear() {
-        List<com.a3shield.enforcer.model.Resource> targets =
+        List<com.a3shield.core.model.Resource> targets =
                 TargetContextHolder.getTargetContext(List.of(new TargetContextBuilderTest.Document("1", "a")));
 
         assertThat(targets).isNotEmpty();

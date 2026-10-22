@@ -1,5 +1,6 @@
 package com.a3shield.enforcer.decision;
 
+import com.a3shield.core.decision.Decision;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

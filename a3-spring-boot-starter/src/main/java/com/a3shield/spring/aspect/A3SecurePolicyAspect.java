@@ -2,11 +2,12 @@ package com.a3shield.spring.aspect;
 
 import com.a3shield.enforcer.AccessEnforcer;
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.Resource;
+import com.a3shield.core.decision.DecisionResult;
+import com.a3shield.core.model.Resource;
 import com.a3shield.spring.annotation.A3SecurePolicy;
 import com.a3shield.spring.context.RequestContextHolder;
 import com.a3shield.spring.context.TargetContextHolder;
-import com.a3shield.spring.exceptions.AccessDeniedException;
+import com.a3shield.core.exception.AccessDeniedException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -42,9 +43,11 @@ public class A3SecurePolicyAspect {
         List<Resource> targets = TargetContextHolder.getTargetContext(result);
         RequestContext context = RequestContextHolder.getRequestContext(targets);
 
-        if (!enforcer.enforce(context)) {
+        DecisionResult decision = enforcer.enforce(context);
+        if (!decision.isAllowed()) {
             throw new AccessDeniedException("Access Denied by policy for returned target(s) of type "
-                    + (targets.isEmpty() ? "<none>" : targets.getFirst().resolve("type")));
+                    + (targets.isEmpty() ? "<none>" : targets.getFirst().resolve("type"))
+                    + ": " + decision.reason(), decision);
         }
 
         return result;

@@ -1,7 +1,7 @@
 package com.a3shield.spring.security;
 
-import com.a3shield.enforcer.model.Subject;
-import com.a3shield.enforcer.model.SubjectType;
+import com.a3shield.core.model.Subject;
+import com.a3shield.core.model.SubjectType;
 import com.a3shield.enforcer.permission.PermissionExtractor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

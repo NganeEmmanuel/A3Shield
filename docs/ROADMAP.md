@@ -31,17 +31,18 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 - [x] Document Intent-vs-Target mental model (README + aspect javadocs)
 - [x] Parent POM: mockito 5.14.2 / byte-buddy 1.15.10 pinned for JDK 23
 
-### M2 — Contract evolution (breaking, do while small) 🔜 NEXT
-*Implements ADR-0005, ADR-0008 §1–2, ADR-0009. One coordinated breaking release, before anything is published.*
-- [ ] Extract `a3-core` (models, DecisionResult, errors — zero deps)
-- [ ] `DecisionResult` replaces boolean across PolicyEngine/AccessEnforcer; `AccessDeniedException` carries it (ADR-0005)
-- [ ] Tenant dimension: `RequestContext` carries tenant; `Policy.tenantId` (+ `*` global scope); repo → `findAll(tenantId, action, resourceType)`; tenant-aware cache keys; matcher checks tenant first (ADR-0009)
-- [ ] `TenantResolver` hook in starter (header/subdomain/claim); `default` tenant zero-config fallback
-- [ ] Resource identity convention `type:id` everywhere; `Intent` gains `id` (ADR-0008)
-- [ ] `RelationResolver` SPI added (map-based test impl only) + `relations` reserved section in policy format (ADR-0008)
-- [ ] Tenant-scope precedence tests (tenant policy vs global policy vs DENY-overrides)
+### M2 — Contract evolution (breaking) ✅ DONE (2026-10-22)
+*Implements ADR-0005, ADR-0008 §1–2, ADR-0009. Breaking API changes — models/decisions/exceptions moved to `com.a3shield.core.*`.*
+- [x] `a3-core` module: models (Subject, SubjectType, Resource, Target, Intent), Decision, **DecisionResult**, AccessDeniedException (unchecked, carries result), Tenants — zero runtime deps
+- [x] `DecisionResult` across PolicyEngine/AccessEnforcer (`enforce` → result, `allow` → boolean helper); aspects throw `AccessDeniedException(message, result)`; engine reports fired policy ids + reason
+- [x] Tenant day-one: `RequestContext.tenantId` (null-safe, defaults `default`), `Policy.tenantId` (`*` global), repo `findAll(tenantId, action, resourceType)` with **real filtering** (was a no-op), matcher checks tenant first, **most-specific-scope-wins precedence** (tenant policies override global when both apply; global applies only when no tenant policy matches)
+- [x] Starter: `TenantResolver` SPI (+ `DefaultTenantResolver` → `default`), `TenantContextHolder` populated/cleared by `A3RequestCheckFilter`, tenant flows into every built RequestContext
+- [x] `type:id` identity: `Resource.urn()` convention, `Intent.id` (+ builder populates from attributes)
+- [x] `RelationResolver` SPI (preview, ADR-0008) + `InMemoryRelationResolver`; `Policy.relations` reserved section
+- [x] Null-safety fixes: `getResourceType()` returns null on empty (was NPE); matcher handles null action
+- [x] Tests: 52 green (3 core / 27 enforcer / 22 starter) incl. tenant precedence, repo filtering, URN, relations, tenant propagation
 
-### M3 — CEL evaluation engine 📋 PLANNED (ADR-0002)
+### M3 — CEL evaluation engine 🔜 NEXT (ADR-0002)
 - [ ] Add `cel-java` to enforcer; `CelConditionEvaluator` behind the SPI with deadline/complexity budget
 - [ ] Register custom functions bridge (prep for `related()`); simple-syntax facade for legacy conditions (`.exists()` for ANY-match)
 - [ ] Evaluation parity test suite: every legacy DSL expression verified against CEL result
@@ -82,6 +83,7 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 4. What exactly goes into v0.1.0 for publishing (M2+M3 minimum? include M4?) — owner call.
 
 ## Changelog (recent)
+- 2026-10-22 (session 4): M2 complete — `a3-core` extracted (models/decisions/exceptions, zero runtime deps), `DecisionResult` with reasons + fired policy ids everywhere, tenant dimension end-to-end (contracts, real repository filtering, most-specific-scope precedence, starter `TenantResolver`), `type:id` URN convention, `RelationResolver` SPI, null-safety fixes. 52 tests green.
 - 2026-10-21 (session 3): M1 complete — aspect fixes (exception passthrough, intent-object bug, `@A3Intent` target), unchecked `AccessDeniedException`, RequestCheck SPI + filter with ThreadLocal cleanup, real auto-configuration registration, 19 starter tests, JDK-23 test toolchain pins. 34 tests green total.
 - 2026-10-21 (session 2): Architecture decided; ADRs 0001–0009 accepted; roadmap restructured into M0–M8 around embedded-first, ReBAC-ready, multi-tenant-day-one direction.
 - 2026-10-21 (session 1): Synced remote; fixed RequestContext compile error; tests migrated to resources-list API (15 green); `NOT_APPLICABLE` decision; `@A3SecurePolicy` WIP committed; build output untracked from git; continuity docs added.

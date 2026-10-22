@@ -1,23 +1,25 @@
-package com.a3shield.enforcer.model;
+package com.a3shield.core.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
+/**
+ * <p><b>Intent</b> describes what the caller is trying to do — typically
+ * built from an {@code @A3Intent}-marked request parameter and checked
+ * pre-execution by {@code @A3Authorize}.</p>
+ */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Target extends Resource{
+public class Intent extends Resource {
     private String id;
     private String type;
     private Map<String, Object> attributes;
-    private static final Logger logger = LoggerFactory.getLogger(Intent.class);
 
     @Override
     public Object resolve(String field) {
@@ -25,10 +27,8 @@ public class Target extends Resource{
         if ("type".equals(field)) return type;
 
         if (attributes == null || !attributes.containsKey(field)) {
-            logger.debug("Missing attribute '{}' on resource {}", field, this);
             return null;
         }
-
         return attributes.get(field);
     }
 }

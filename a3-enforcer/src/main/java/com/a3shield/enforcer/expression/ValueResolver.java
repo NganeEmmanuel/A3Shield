@@ -1,7 +1,7 @@
 package com.a3shield.enforcer.expression;
 
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.enforcer.model.*;
+import com.a3shield.core.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
