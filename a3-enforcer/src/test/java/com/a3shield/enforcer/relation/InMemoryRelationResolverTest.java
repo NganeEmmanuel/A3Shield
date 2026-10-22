@@ -1,18 +1,16 @@
 package com.a3shield.enforcer.relation;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class InMemoryRelationResolverTest {
 
     private final InMemoryRelationResolver resolver = new InMemoryRelationResolver(Map.of(
             "user-1|owner", Set.of("document:7", "folder:3"),
-            "user-1|editor", Set.of("folder:9")
-    ));
+            "user-1|editor", Set.of("folder:9")));
 
     @Test
     void shouldAnswerRelationChecksByUrn() {
@@ -24,10 +22,8 @@ class InMemoryRelationResolverTest {
 
     @Test
     void shouldListRelatedResourcesOfType() {
-        assertThat(resolver.relatedResources("user-1", "owner", "folder"))
-                .containsExactly("folder:3");
-        assertThat(resolver.relatedResources("user-1", "owner", "document"))
-                .containsExactly("document:7");
+        assertThat(resolver.relatedResources("user-1", "owner", "folder")).containsExactly("folder:3");
+        assertThat(resolver.relatedResources("user-1", "owner", "document")).containsExactly("document:7");
         assertThat(resolver.relatedResources("user-1", "editor", "document")).isEmpty();
     }
 }

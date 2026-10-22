@@ -1,23 +1,21 @@
 package com.a3shield.spring.aspect;
 
+import com.a3shield.core.decision.DecisionResult;
+import com.a3shield.core.exception.AccessDeniedException;
+import com.a3shield.core.model.Resource;
 import com.a3shield.enforcer.AccessEnforcer;
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.core.decision.DecisionResult;
-import com.a3shield.core.model.Resource;
 import com.a3shield.spring.annotation.A3Authorize;
-
 import com.a3shield.spring.annotation.A3Intent;
 import com.a3shield.spring.context.IntentContentHolder;
 import com.a3shield.spring.context.RequestContextHolder;
-import com.a3shield.core.exception.AccessDeniedException;
+import java.lang.annotation.Annotation;
+import java.util.List;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.annotation.Annotation;
-import java.util.List;
 
 /**
  * Pre-execution enforcement: intercepts methods annotated with {@link A3Authorize},
@@ -43,7 +41,9 @@ public class A3AuthorizationAspect {
             if (intentObject != null) {
                 preAuthorize(intentObject);
             } else {
-                logger.debug("@A3Authorize(\"{}\") has no @A3Intent-annotated parameter to build an intent from; no pre-check performed", expression);
+                logger.debug(
+                        "@A3Authorize(\"{}\") has no @A3Intent-annotated parameter to build an intent from; no pre-check performed",
+                        expression);
             }
         }
 
@@ -74,5 +74,4 @@ public class A3AuthorizationAspect {
             throw new AccessDeniedException("Access Denied: " + result.reason(), result);
         }
     }
-
 }

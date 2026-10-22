@@ -1,11 +1,10 @@
 package com.a3shield.core.model;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.Map;
 
 /**
  * <p><b>Intent</b> describes what the caller is trying to do — typically

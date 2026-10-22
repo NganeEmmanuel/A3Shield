@@ -1,13 +1,12 @@
 package com.a3shield.enforcer.evaluator;
 
-import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.core.model.*;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.a3shield.core.model.*;
+import com.a3shield.enforcer.context.RequestContext;
 import java.util.List;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class DslConditionEvaluatorTest {
 
@@ -17,19 +16,12 @@ class DslConditionEvaluatorTest {
     void shouldEvaluateSimpleEquality() {
 
         RequestContext context = RequestContext.builder()
-                .subject(Subject.builder()
-                        .id("1")
-                        .type(SubjectType.USER)
-                        .build())
-                .resources(List.of(Target.builder()
-                        .attributes(Map.of("ownerId", "1"))
-                        .build()))
+                .subject(Subject.builder().id("1").type(SubjectType.USER).build())
+                .resources(List.of(
+                        Target.builder().attributes(Map.of("ownerId", "1")).build()))
                 .build();
 
-        boolean result = evaluator.evaluate(
-                "resource.ownerId == subject.id",
-                context
-        );
+        boolean result = evaluator.evaluate("resource.ownerId == subject.id", context);
 
         assertThat(result).isTrue();
     }
@@ -39,15 +31,11 @@ class DslConditionEvaluatorTest {
 
         RequestContext context = RequestContext.builder()
                 .subject(Subject.builder().id("2").build())
-                .resources(List.of(Target.builder()
-                        .attributes(Map.of("ownerId", "1"))
-                        .build()))
+                .resources(List.of(
+                        Target.builder().attributes(Map.of("ownerId", "1")).build()))
                 .build();
 
-        boolean result = evaluator.evaluate(
-                "resource.ownerId == subject.id",
-                context
-        );
+        boolean result = evaluator.evaluate("resource.ownerId == subject.id", context);
 
         assertThat(result).isFalse();
     }

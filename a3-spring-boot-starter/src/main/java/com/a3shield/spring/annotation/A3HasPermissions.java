@@ -12,5 +12,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface A3HasPermissions {
     String[] preAuthorize() default {};
+
     String[] postAuthorize() default {};
 }

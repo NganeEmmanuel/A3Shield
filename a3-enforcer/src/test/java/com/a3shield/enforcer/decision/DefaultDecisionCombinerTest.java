@@ -1,11 +1,10 @@
 package com.a3shield.enforcer.decision;
 
-import com.a3shield.core.decision.Decision;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import com.a3shield.core.decision.Decision;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for DefaultDecisionCombiner
@@ -19,19 +18,14 @@ class DefaultDecisionCombinerTest {
 
     @Test
     void shouldReturnDenyIfAnyDenyExists() {
-        Decision result = combiner.combine(List.of(
-                Decision.ALLOW,
-                Decision.DENY
-        ));
+        Decision result = combiner.combine(List.of(Decision.ALLOW, Decision.DENY));
 
         assertThat(result).isEqualTo(Decision.DENY);
     }
 
     @Test
     void shouldReturnAllowIfOnlyAllowExists() {
-        Decision result = combiner.combine(List.of(
-                Decision.ALLOW
-        ));
+        Decision result = combiner.combine(List.of(Decision.ALLOW));
 
         assertThat(result).isEqualTo(Decision.ALLOW);
     }

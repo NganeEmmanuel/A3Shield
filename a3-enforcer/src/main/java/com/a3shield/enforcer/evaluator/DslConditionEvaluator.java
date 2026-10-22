@@ -5,7 +5,6 @@ import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.enforcer.expression.Expression;
 import com.a3shield.enforcer.expression.ExpressionParser;
 import com.a3shield.enforcer.expression.ValueResolver;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -94,7 +93,8 @@ public class DslConditionEvaluator implements ConditionEvaluator {
      * @return {@code true} if the condition is satisfied, {@code false} otherwise
      */
 
-    // update idea is that since the we compare each field, we have to compare both in the case of single item resource or multiple items resources
+    // update idea is that since the we compare each field, we have to compare both in the case of single item resource
+    // or multiple items resources
     // so for each item we run the compare for each field
     private boolean evaluateSingle(String expr, RequestContext context) {
 
@@ -107,11 +107,8 @@ public class DslConditionEvaluator implements ConditionEvaluator {
         List<?> rightList = toList(rightRaw);
 
         // ANY match semantics (default)
-        return leftList.stream().anyMatch(l ->
-                rightList.stream().anyMatch(r ->
-                        evaluateComparison(l, r, parsed.operator())
-                )
-        );
+        return leftList.stream()
+                .anyMatch(l -> rightList.stream().anyMatch(r -> evaluateComparison(l, r, parsed.operator())));
     }
 
     /**
@@ -140,10 +137,7 @@ public class DslConditionEvaluator implements ConditionEvaluator {
         if (left == null || right == null) return 0;
 
         if (left instanceof Number && right instanceof Number) {
-            return Double.compare(
-                    ((Number) left).doubleValue(),
-                    ((Number) right).doubleValue()
-            );
+            return Double.compare(((Number) left).doubleValue(), ((Number) right).doubleValue());
         }
 
         try {

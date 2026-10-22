@@ -1,0 +1,85 @@
+name: Build & Test
+
+# Full build, tests, format check and CodeQL analysis.
+# Skipped for docs-only / metadata-only changes to save runner time.
+on:
+  push:
+    branches: [master, staging, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.github/**/*.md'
+  pull_request:
+    branches: [master, staging, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.github/**/*.md'
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Test (JDK 23)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 23 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '23'
+          cache: maven
+
+      # Same commands contributors run locally - see CONTRIBUTING.md
+      - name: Build & test (./mvnw clean verify)
+        run: ./mvnw -B -ntp clean verify
+
+      - name: Format check (spotless)
+        run: ./mvnw -B -ntp spotless:check
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-reports
+          path: '**/target/surefire-reports/'
+          retention-days: 7
+
+  codeql:
+    name: CodeQL (static analysis)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 23 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '23'
+          cache: maven
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+
+      - name: Build for analysis
+        run: ./mvnw -B -ntp clean package -DskipTests
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:java'

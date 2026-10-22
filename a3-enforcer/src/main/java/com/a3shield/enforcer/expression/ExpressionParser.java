@@ -32,7 +32,7 @@ public class ExpressionParser {
      * <ul>
      *   <li>Comparison operators: {@code ==}, {@code !=}, {@code >}, and {@code <}.</p>
      * </ul>
-
+     *
      * @param expression the condition expression string (e.g., {@code resource.id == subject.id})
      * @return a structured {@link Expression} object, or {@code null} if the input is blank
      * @throws IllegalArgumentException if the expression format is invalid
@@ -50,7 +50,7 @@ public class ExpressionParser {
 
         throw new IllegalArgumentException("Invalid expression: " + expression);
     }
-    
+
     private Expression split(String expr, String operator) {
         int index = expr.indexOf(operator);
 

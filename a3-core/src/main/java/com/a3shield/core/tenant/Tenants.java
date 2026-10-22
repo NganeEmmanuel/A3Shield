@@ -12,6 +12,5 @@ public final class Tenants {
     /** Wildcard scope: a policy that applies across all tenants. */
     public static final String GLOBAL = "*";
 
-    private Tenants() {
-    }
+    private Tenants() {}
 }

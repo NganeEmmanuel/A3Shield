@@ -36,12 +36,10 @@ public class A3WebConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = "a3RequestCheckFilter")
-    public FilterRegistrationBean<A3RequestCheckFilter> a3RequestCheckFilter(ObjectProvider<RequestCheck> requestChecks,
-                                                                             TenantResolver tenantResolver) {
+    public FilterRegistrationBean<A3RequestCheckFilter> a3RequestCheckFilter(
+            ObjectProvider<RequestCheck> requestChecks, TenantResolver tenantResolver) {
         A3RequestCheckFilter filter = new A3RequestCheckFilter(
-                new RequestCheckChain(requestChecks.orderedStream().toList()),
-                tenantResolver
-        );
+                new RequestCheckChain(requestChecks.orderedStream().toList()), tenantResolver);
         FilterRegistrationBean<A3RequestCheckFilter> registration = new FilterRegistrationBean<>(filter);
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 50);
         return registration;

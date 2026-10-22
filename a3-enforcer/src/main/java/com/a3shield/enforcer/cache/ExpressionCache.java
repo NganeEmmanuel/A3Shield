@@ -1,7 +1,6 @@
 package com.a3shield.enforcer.cache;
 
 import com.a3shield.enforcer.expression.Expression;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -15,10 +14,10 @@ import java.util.concurrent.ConcurrentMap;
 public class ExpressionCache {
     // todo upgrade to:
     //
-    //LRU cache (limit memory)
-    //TTL expiration
-    //Precompiled policies
-    //Distributed cache (Redis)
+    // LRU cache (limit memory)
+    // TTL expiration
+    // Precompiled policies
+    // Distributed cache (Redis)
 
     private final ConcurrentMap<String, Expression> cache = new ConcurrentHashMap<>();
 

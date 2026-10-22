@@ -9,7 +9,6 @@ import com.a3shield.enforcer.evaluator.ConditionEvaluator;
 import com.a3shield.enforcer.matcher.PolicyMatcher;
 import com.a3shield.enforcer.policy.Policy;
 import com.a3shield.enforcer.repository.PolicyRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +45,7 @@ public class DefaultPolicyEngine implements PolicyEngine {
             PolicyRepository policyRepository,
             PolicyMatcher policyMatcher,
             ConditionEvaluator conditionEvaluator,
-            DecisionCombiner decisionCombiner
-    ) {
+            DecisionCombiner decisionCombiner) {
         this.policyRepository = policyRepository;
         this.policyMatcher = policyMatcher;
         this.conditionEvaluator = conditionEvaluator;
@@ -57,8 +55,8 @@ public class DefaultPolicyEngine implements PolicyEngine {
     @Override
     public DecisionResult evaluate(RequestContext context) {
 
-        List<Policy> candidates = policyRepository.findAll(
-                context.getTenantId(), context.getAction(), context.getResourceType());
+        List<Policy> candidates =
+                policyRepository.findAll(context.getTenantId(), context.getAction(), context.getResourceType());
 
         List<Policy> matchedPolicies = policyMatcher.match(context, candidates);
         List<Policy> applicablePolicies = chooseByScopePrecedence(matchedPolicies, context.getTenantId());

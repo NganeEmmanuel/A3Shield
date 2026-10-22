@@ -10,10 +10,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Servlet filter with three jobs (ADR-0001, ADR-0006, ADR-0009):
@@ -39,9 +38,8 @@ public class A3RequestCheckFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         try {
             TenantContextHolder.setTenantId(tenantResolver.resolveTenant(request));
 

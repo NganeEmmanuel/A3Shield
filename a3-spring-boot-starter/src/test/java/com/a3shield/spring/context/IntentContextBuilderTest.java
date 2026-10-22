@@ -1,10 +1,10 @@
 package com.a3shield.spring.context;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.a3shield.core.model.Intent;
 import com.a3shield.core.model.Resource;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class IntentContextBuilderTest {
 

@@ -2,15 +2,15 @@ package com.a3shield.spring.context;
 
 import com.a3shield.core.model.Intent;
 import com.a3shield.core.model.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IntentContextBuilder {
     private final Logger logger = LoggerFactory.getLogger(IntentContextBuilder.class);
+
     public Resource build(Object object) {
         Map<String, Object> attributes = new HashMap<>();
         Field[] fields = object.getClass().getDeclaredFields();
@@ -29,5 +29,4 @@ public class IntentContextBuilder {
                 .attributes(attributes)
                 .build();
     }
-
 }

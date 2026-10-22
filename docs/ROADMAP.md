@@ -69,8 +69,11 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 - [ ] `related()` CEL function end-to-end; freeze preview contracts
 
 ### M8 — Distribution & credibility 🔮 FUTURE
+- [x] CI (GitHub Actions: build+test+spotless+CodeQL / gitleaks / dependency-review, Dependabot) — pulled forward, done 2026-10-22 on `chore/ci-pipeline`
+- [x] Branching & PR workflow (develop/staging/master, Conventional Commits, PR template) — 2026-10-22
+- [ ] Branch protection rules enabled in repo settings (manual step — see CONTRIBUTING)
 - [ ] Example app using the starter end-to-end; README rewrite to match reality
-- [ ] CI (GitHub Actions: build + test on push/PR); publish to GitHub Packages/Maven Central
+- [ ] Publish to GitHub Packages/Maven Central
 
 ### Vision backlog (unprioritized, from README)
 - [ ] a3-auth-adapter (login-flow conveniences — adapter, never core)
@@ -83,6 +86,7 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 4. What exactly goes into v0.1.0 for publishing (M2+M3 minimum? include M4?) — owner call.
 
 ## Changelog (recent)
+- 2026-10-22 (session 5): Workflow & CI established — `develop`/`staging` permanent branches (synced with master), Conventional Commits + branch naming, Maven wrapper (pinned 3.9.11), Spotless baseline (palantir), CI workflows (build+tests+CodeQL path-filtered; gitleaks + dependency-review always; Dependabot), PR template, CONTRIBUTING rewritten. Branch protection = manual step pending.
 - 2026-10-22 (session 4): M2 complete — `a3-core` extracted (models/decisions/exceptions, zero runtime deps), `DecisionResult` with reasons + fired policy ids everywhere, tenant dimension end-to-end (contracts, real repository filtering, most-specific-scope precedence, starter `TenantResolver`), `type:id` URN convention, `RelationResolver` SPI, null-safety fixes. 52 tests green.
 - 2026-10-21 (session 3): M1 complete — aspect fixes (exception passthrough, intent-object bug, `@A3Intent` target), unchecked `AccessDeniedException`, RequestCheck SPI + filter with ThreadLocal cleanup, real auto-configuration registration, 19 starter tests, JDK-23 test toolchain pins. 34 tests green total.
 - 2026-10-21 (session 2): Architecture decided; ADRs 0001–0009 accepted; roadmap restructured into M0–M8 around embedded-first, ReBAC-ready, multi-tenant-day-one direction.

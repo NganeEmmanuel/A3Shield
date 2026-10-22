@@ -15,7 +15,8 @@ public class SubjectContext {
 
         if (CURRENT_SUBJECT.get() == null) {
             setCurrentSubject(subjectExtractor.extractSubject());
-        };
+        }
+        ;
         return CURRENT_SUBJECT.get();
     }
 

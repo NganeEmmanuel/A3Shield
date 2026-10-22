@@ -1,7 +1,6 @@
 package com.a3shield.enforcer.decision;
 
 import com.a3shield.core.decision.Decision;
-
 import java.util.List;
 
 /**
