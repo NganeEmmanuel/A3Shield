@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-10-22 (session 5) — Workflow & CI established (first PR-based work)
+
+**Goal of session:** establish branching model + CI per owner requirements (external contributors, progressive commits, standard practices, docs-only changes skip builds, deterministic local==CI parity).
+
+**What was done:**
+1. **Branches:** created `develop` and `staging` from master (all three synced at `47bbf92`), pushed. Model: `master` (production) ← `staging` (pre-release) ← `develop` (integration); all work on `feature|fix|chore|security|docs/*` branches via PR; merge commits (no squash); Conventional Commits.
+2. **This session's work** on `chore/ci-pipeline` (owner will open the PR and merge): Maven wrapper pinned to 3.9.11 (`./mvnw` everywhere now — CI parity); Spotless 2.44.5 with palantir-java-format + import order, baseline applied (58 files, tests still green); CI workflows (`.github/workflows/ci-build.yml` = build+test+spotless+CodeQL with docs path filters; `ci-security.yml` = gitleaks full-history scan always + dependency-review on PRs); `dependabot.yml` (maven + actions, weekly); `.github/PULL_REQUEST_TEMPLATE.md`.
+3. **Docs:** CONTRIBUTING.md fully rewritten (branch model, commit format, local-verification parity section, CI gate table); AGENTS.md workflow section + agent rule recorded (**at end of every work unit the agent provides a PR description in the template format**); ROADMAP M8 updated.
+
+**State:** work committed progressively on `chore/ci-pipeline` (5 commits), pushed for owner PR. All 52 tests green via `./mvnw clean verify` after the format baseline. `develop`/`staging`/`master` untouched by this work (equal at `47bbf92`).
+
+**Decisions made:** branch names `develop` + `staging` (owner asked for best practice — gitflow-standard); merge-commit strategy preserving progressive commits; format = palantir (4-space, closest to existing style); CI builds skip docs-only paths but secret scan always runs; Temurin 23 in CI.
+
+**Pending (owner actions):** open PR `chore/ci-pipeline` → `develop` using the provided description; merge; **enable branch protection manually** (Settings → Branches; steps in CONTRIBUTING) — requires PR + status checks on master/staging/develop.
+
+**Suggested next steps:** after merge, cut future work branches from `develop` (not master); M3 CEL engine on `feature/cel-evaluator`.
+
+---
+
 ## 2026-10-22 (session 4) — M2 complete: contract evolution (tenant day-1, DecisionResult, a3-core)
 
 **Goal of session:** implement M2 per ROADMAP — the coordinated breaking contract release.

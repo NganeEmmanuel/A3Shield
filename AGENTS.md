@@ -49,19 +49,31 @@ a3shield (parent pom, v0.1.0)
 ## Build & Test Commands
 
 ```bash
-mvn test              # full build + all tests (run before every commit)
-mvn -pl a3-enforcer test        # enforcer only
-mvn -pl a3-spring-boot-starter test   # starter only (currently has NO tests)
+./mvnw -B -ntp clean verify      # full build + all tests (exactly what CI runs)
+./mvnw -B -ntp spotless:check    # format gate (CI fails if not clean)
+./mvnw -B -ntp spotless:apply    # auto-fix formatting before committing
+./mvnw -B -ntp -pl a3-enforcer test              # enforcer only
+./mvnw -B -ntp -pl a3-spring-boot-starter test   # starter only
 ```
 
-- Java 23 required (Oracle JDK 23.0.2 in use). Maven 3.9.x.
-- Lombok 1.18.44 via annotationProcessorPaths in the parent pom.
+- Use `./mvnw` (wrapper, pinned Maven 3.9.11) — NOT bare `mvn` — so local matches CI.
+- Java 23 required (Temurin 23 in CI). Lombok 1.18.44 via annotationProcessorPaths.
 - Spring Boot 3.2.5 dependency management (starter module).
+- Tests are pure unit tests (no DB/network/secrets) — deterministic by design.
+
+## Workflow (branches, commits, PRs — see CONTRIBUTING.md for full detail)
+
+- **Permanent protected branches:** `master` (production releases) ← `staging` (pre-release hardening) ← `develop` (integration). **Never commit directly to them.**
+- **All work happens on branches from `develop`:** `feature/xxxx`, `fix/xxxx`, `chore/xxxx`, `security/xxxx`, `docs/xxxx`.
+- **Commits follow Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`, `ci:`, `build:`, `security:`, `refactor:`, `test:`). Progressive, small commits within a milestone are the norm.
+- **PRs** may contain multiple related commits; merge with a **merge commit** (no squash). CI must be green (build+tests, spotless, CodeQL, gitleaks, dependency review).
+- **Agent rule (recorded by owner decision, 2026-10-22):** at the end of every unit of work, the agent must provide a PR description following `.github/PULL_REQUEST_TEMPLATE.md` (What/Why/Type/Changes/Testing/Checklist/Breaking changes/Related), ready to paste into the PR.
+- Docs-only changes skip the build workflows (path filters) but always run the secret scan.
 
 ## Conventions
 
-- `master` branch, direct commits (no PR flow yet for solo work). Commit style: short lowercase summary lines, descriptive body is fine.
-- **Never commit `target/`** (build output). It is gitignored now; keep it that way.
+- **Never commit `target/`** (build output). It is gitignored; keep it that way.
+- Format with Spotless (palantir-java-format): run `./mvnw spotless:apply` before committing; CI enforces `spotless:check`.
 - **Starter classes carry no `@Component`/stereotype annotations** — everything is registered via `A3AutoConfiguration`/`A3WebConfiguration` with `@ConditionalOnMissingBean` back-off. Adding a stereotype re-registers the bean twice when host apps scan the package.
 - Javadoc-style `<p>` docs on public contracts in `a3-enforcer`; the starter is less documented.
 - Tests: JUnit 5 + AssertJ + Mockito (mockito 5.14/byte-buddy 1.15 pinned in the parent POM for JDK 23). Aspect tests use `AspectJProxyFactory`; holder/filter tests must clear ThreadLocals in `@AfterEach`.
@@ -73,14 +85,14 @@ mvn -pl a3-spring-boot-starter test   # starter only (currently has NO tests)
 2. `TargetContextBuilder` uses raw reflection (`setAccessible`) — breaks on JDK internals (e.g. String fields) and is flagged "too slow" by its author; fine for app POJOs for now.
 3. README + `docs/architecture/*` describe modules that **don't exist** (`a3-auth`, `a3-access`, `a3-gateway`, `a3-sdk`). Treat them as vision docs, not reality. (README's Intent/Target and module sections partially updated.)
 4. `A3HasRoles`/`A3HasPermissions` + `A3RoleValidation`/`A3PermissionValidation` are unreferenced WIP — no aspect uses them yet.
-5. No CI, no publish setup (local install only).
+5. CI added 2026-10-22 (build/tests/spotless/CodeQL/gitleaks/dependency-review + Dependabot); branch protection still to be enabled manually (see CONTRIBUTING); no publish setup yet (local install only).
 6. Obligations are plumbed through `DecisionResult` but policies can't declare them yet.
 7. M2 moved packages (`com.a3shield.enforcer.model.*` → `com.a3shield.core.model.*`, `AccessDeniedException` → `com.a3shield.core.exception`): any host-app code from pre-M2 needs import updates.
 
 ## Continuity Workflow (how sessions stay coherent)
 
 1. **Start of session:** read this file + `docs/ROADMAP.md` + `docs/SESSION_HANDOFF.md` (latest entry at top) + any ADRs relevant to the work at hand (`docs/adr/README.md` index).
-2. **During work:** keep commits small; run `mvn test` before each commit.
-3. **End of session:** prepend a dated entry to `docs/SESSION_HANDOFF.md` (what changed / decisions / next steps), update `docs/ROADMAP.md` checkboxes, commit + push.
+2. **During work:** branch off `develop` (`feature/*` etc.), keep commits small and Conventional-Commits-formatted; run `./mvnw -B -ntp clean verify` before each push.
+3. **End of session:** prepend a dated entry to `docs/SESSION_HANDOFF.md` (what changed / decisions / next steps), update `docs/ROADMAP.md` checkboxes, push the branch, and **provide the PR description** in the template format for the owner to open the PR.
 
 See `docs/ROADMAP.md` for milestones and `docs/SESSION_HANDOFF.md` for the latest state.
