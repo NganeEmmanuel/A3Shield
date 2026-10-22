@@ -1,12 +1,11 @@
 package com.a3shield.spring.context;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.a3shield.core.model.Resource;
 import com.a3shield.core.model.Target;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class TargetContextBuilderTest {
 
@@ -36,10 +35,7 @@ class TargetContextBuilderTest {
 
     @Test
     void shouldBuildTargetListFromCollection() {
-        List<Resource> targets = builder.build(List.of(
-                new Document("1", "a"),
-                new Document("2", "b")
-        ));
+        List<Resource> targets = builder.build(List.of(new Document("1", "a"), new Document("2", "b")));
 
         assertThat(targets).hasSize(2);
         assertThat(targets).allMatch(t -> "Document".equals(t.resolve("type")));

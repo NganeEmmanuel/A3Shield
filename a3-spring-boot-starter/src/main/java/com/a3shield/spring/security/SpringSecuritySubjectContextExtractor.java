@@ -3,14 +3,13 @@ package com.a3shield.spring.security;
 import com.a3shield.core.model.Subject;
 import com.a3shield.core.model.SubjectType;
 import com.a3shield.enforcer.permission.PermissionExtractor;
+import java.util.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import java.util.*;
-
-public class SpringSecuritySubjectContextExtractor implements SubjectExtractor{
+public class SpringSecuritySubjectContextExtractor implements SubjectExtractor {
     private final List<PermissionExtractor> permissionExtractors;
 
     public SpringSecuritySubjectContextExtractor(List<PermissionExtractor> permissionExtractors) {
@@ -20,8 +19,7 @@ public class SpringSecuritySubjectContextExtractor implements SubjectExtractor{
     @Override
     public Subject extractSubject() {
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication instanceof JwtAuthenticationToken jwtAuth) {
             Jwt jwt = jwtAuth.getToken();

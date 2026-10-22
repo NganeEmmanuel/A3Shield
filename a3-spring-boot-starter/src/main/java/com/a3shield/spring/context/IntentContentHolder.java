@@ -3,8 +3,9 @@ package com.a3shield.spring.context;
 import com.a3shield.core.model.Resource;
 
 public class IntentContentHolder {
-    private static final ThreadLocal<Resource>  CURRENT_INTENT = new ThreadLocal<>();
-    private static final IntentContextBuilder contextBuilder = new IntentContextBuilder(); // todo not sure how to handle autowires
+    private static final ThreadLocal<Resource> CURRENT_INTENT = new ThreadLocal<>();
+    private static final IntentContextBuilder contextBuilder =
+            new IntentContextBuilder(); // todo not sure how to handle autowires
 
     public static Resource getCurrentIntent(Object object) {
         if (CURRENT_INTENT.get() == null) {
@@ -20,5 +21,4 @@ public class IntentContentHolder {
     public static void clearCurrentIntent() {
         CURRENT_INTENT.remove();
     }
-
 }

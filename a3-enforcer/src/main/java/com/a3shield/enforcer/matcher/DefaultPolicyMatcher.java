@@ -1,10 +1,9 @@
 package com.a3shield.enforcer.matcher;
 
-import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.core.model.Resource;
 import com.a3shield.core.model.Subject;
+import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.enforcer.policy.Policy;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,9 +28,7 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
 
     @Override
     public List<Policy> match(RequestContext context, List<Policy> policies) {
-        return policies.stream()
-                .filter(policy -> matches(policy, context))
-                .collect(Collectors.toList());
+        return policies.stream().filter(policy -> matches(policy, context)).collect(Collectors.toList());
     }
 
     /**
@@ -44,8 +41,7 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
     private boolean matches(Policy policy, RequestContext context) {
 
         // ADR-0009: tenant scope first — global or exact tenant match
-        if (!policy.effectiveTenantId().equals(context.getTenantId())
-                && !"*".equals(policy.effectiveTenantId())) {
+        if (!policy.effectiveTenantId().equals(context.getTenantId()) && !"*".equals(policy.effectiveTenantId())) {
             return false;
         }
 
@@ -53,16 +49,17 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
 
         // Match resource type
         if (policy.getResource() != null) {
-            boolean match = resources != null && resources.stream()
-                    .map(r -> r.resolve("type"))
-                    .anyMatch(type -> policy.getResource().equals(type));
+            boolean match = resources != null
+                    && resources.stream().map(r -> r.resolve("type")).anyMatch(type -> policy.getResource()
+                            .equals(type));
 
             if (!match) return false;
         }
 
         // Match action (null request action never satisfies a constrained policy)
         if (policy.getAction() != null) {
-            if (context.getAction() == null || context.getAction().getName() == null
+            if (context.getAction() == null
+                    || context.getAction().getName() == null
                     || !policy.getAction().equalsIgnoreCase(context.getAction().getName())) {
                 return false;
             }
@@ -105,9 +102,7 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
         return switch (key) {
             case "id" -> subject.getId();
             case "type" -> subject.getType().name();
-            default -> subject.getAttributes() != null
-                    ? subject.getAttributes().get(key)
-                    : null;
+            default -> subject.getAttributes() != null ? subject.getAttributes().get(key) : null;
         };
     }
 }

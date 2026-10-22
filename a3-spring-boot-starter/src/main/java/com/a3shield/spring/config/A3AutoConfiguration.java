@@ -16,12 +16,11 @@ import com.a3shield.spring.context.TargetContextBuilder;
 import com.a3shield.spring.context.TargetContextHolder;
 import com.a3shield.spring.security.SpringSecuritySubjectContextExtractor;
 import com.a3shield.spring.security.SubjectExtractor;
+import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-
-import java.util.List;
 
 /**
  * Core auto-configuration for A3Shield: engine beans, subject extraction,
@@ -43,11 +42,7 @@ public class A3AutoConfiguration {
     @ConditionalOnMissingBean
     public PolicyEngine policyEngine(PolicyRepository repo) {
         return new DefaultPolicyEngine(
-                repo,
-                new DefaultPolicyMatcher(),
-                new DslConditionEvaluator(),
-                new DefaultDecisionCombiner()
-        );
+                repo, new DefaultPolicyMatcher(), new DslConditionEvaluator(), new DefaultDecisionCombiner());
     }
 
     @Bean
@@ -59,7 +54,8 @@ public class A3AutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(SubjectExtractor.class)
     public SubjectExtractor subjectExtractor(ObjectProvider<PermissionExtractor> permissionExtractors) {
-        return new SpringSecuritySubjectContextExtractor(permissionExtractors.orderedStream().toList());
+        return new SpringSecuritySubjectContextExtractor(
+                permissionExtractors.orderedStream().toList());
     }
 
     @Bean

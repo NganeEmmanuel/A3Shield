@@ -2,13 +2,12 @@ package com.a3shield.spring.aspect;
 
 import com.a3shield.spring.annotation.A3HasRoles;
 import com.a3shield.spring.context.SubjectContext;
+import java.util.List;
+import java.util.Set;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.expression.AccessException;
-
-import java.util.List;
-import java.util.Set;
 
 @Aspect
 public class A3RoleValidation {
@@ -18,13 +17,12 @@ public class A3RoleValidation {
         // validate roles
         var hasRoles = validate(SubjectContext.getCurrentSubject().getRoles(), List.of(a3HasRoles.value()));
 
-        if(!hasRoles){
+        if (!hasRoles) {
             throw new AccessException("Access Denied");
         }
-
     }
 
-    private boolean validate(Set<String> subjectRoles, List<String> requiredRoles){
+    private boolean validate(Set<String> subjectRoles, List<String> requiredRoles) {
         return subjectRoles.containsAll(requiredRoles);
     }
 }

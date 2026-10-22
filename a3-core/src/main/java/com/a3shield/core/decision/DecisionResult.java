@@ -17,10 +17,7 @@ import java.util.Map;
  *                          declare them
  */
 public record DecisionResult(
-        Decision decision,
-        List<String> matchedPolicyIds,
-        String reason,
-        Map<String, Object> obligations) {
+        Decision decision, List<String> matchedPolicyIds, String reason, Map<String, Object> obligations) {
 
     public DecisionResult {
         matchedPolicyIds = matchedPolicyIds == null ? List.of() : List.copyOf(matchedPolicyIds);

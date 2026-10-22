@@ -2,7 +2,6 @@ package com.a3shield.enforcer.matcher;
 
 import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.enforcer.policy.Policy;
-
 import java.util.List;
 
 /**

@@ -1,22 +1,5 @@
 package com.a3shield.spring.aspect;
 
-import com.a3shield.enforcer.AccessEnforcer;
-import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.core.decision.DecisionResult;
-import com.a3shield.core.model.Subject;
-import com.a3shield.core.model.SubjectType;
-import com.a3shield.spring.annotation.A3Authorize;
-import com.a3shield.spring.annotation.A3Intent;
-import com.a3shield.spring.context.IntentContentHolder;
-import com.a3shield.spring.context.RequestContextHolder;
-import com.a3shield.spring.context.SubjectContext;
-import com.a3shield.core.exception.AccessDeniedException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +7,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.a3shield.core.decision.DecisionResult;
+import com.a3shield.core.exception.AccessDeniedException;
+import com.a3shield.core.model.Subject;
+import com.a3shield.core.model.SubjectType;
+import com.a3shield.enforcer.AccessEnforcer;
+import com.a3shield.enforcer.context.RequestContext;
+import com.a3shield.spring.annotation.A3Authorize;
+import com.a3shield.spring.annotation.A3Intent;
+import com.a3shield.spring.context.IntentContentHolder;
+import com.a3shield.spring.context.RequestContextHolder;
+import com.a3shield.spring.context.SubjectContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 
 class A3AuthorizationAspectTest {
 
@@ -51,7 +51,8 @@ class A3AuthorizationAspectTest {
 
     @BeforeEach
     void setUp() {
-        new SubjectContext(() -> Subject.builder().id("1").type(SubjectType.USER).build());
+        new SubjectContext(
+                () -> Subject.builder().id("1").type(SubjectType.USER).build());
     }
 
     @AfterEach
@@ -80,8 +81,7 @@ class A3AuthorizationAspectTest {
     void shouldThrowTypedAccessDeniedExceptionWhenDenied() {
         when(enforcer.enforce(any(RequestContext.class))).thenReturn(DecisionResult.deny("test deny"));
 
-        assertThatThrownBy(() -> proxiedService().submit(new Order("o-1")))
-                .isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> proxiedService().submit(new Order("o-1"))).isInstanceOf(AccessDeniedException.class);
     }
 
     @Test

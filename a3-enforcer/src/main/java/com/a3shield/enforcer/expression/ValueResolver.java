@@ -1,8 +1,7 @@
 package com.a3shield.enforcer.expression;
 
-import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.core.model.*;
-
+import com.a3shield.enforcer.context.RequestContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -70,9 +69,7 @@ public class ValueResolver {
         return switch (field) {
             case "id" -> subject.getId();
             case "type" -> subject.getType().name();
-            default -> subject.getAttributes() != null
-                    ? subject.getAttributes().get(field)
-                    : null;
+            default -> subject.getAttributes() != null ? subject.getAttributes().get(field) : null;
         };
     }
 
@@ -103,8 +100,6 @@ public class ValueResolver {
 
         return values;
     }
-
-
 
     /**
      * <p>Resolve a field from the contextual attributes map.</p>

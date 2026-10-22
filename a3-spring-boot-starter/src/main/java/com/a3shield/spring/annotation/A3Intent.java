@@ -12,5 +12,4 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-public @interface A3Intent {
-}
+public @interface A3Intent {}

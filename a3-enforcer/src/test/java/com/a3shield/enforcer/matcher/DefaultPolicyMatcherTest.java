@@ -1,17 +1,16 @@
 package com.a3shield.enforcer.matcher;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.a3shield.core.model.*;
 import com.a3shield.enforcer.action.Action;
 import com.a3shield.enforcer.context.RequestContext;
-import com.a3shield.core.model.*;
-import com.a3shield.enforcer.policy.Policy;
 import com.a3shield.enforcer.effect.Effect;
-import org.junit.jupiter.api.Test;
-
+import com.a3shield.enforcer.policy.Policy;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for DefaultPolicyMatcher
@@ -39,9 +38,7 @@ class DefaultPolicyMatcherTest {
                         .type(SubjectType.USER)
                         .roles(Set.of("user"))
                         .build())
-                .resources(List.of(Intent.builder()
-                        .type("document")
-                        .build()))
+                .resources(List.of(Intent.builder().type("document").build()))
                 .action(new Action("read"))
                 .build();
 

@@ -1,15 +1,7 @@
 package com.a3shield.enforcer.permission;
 
+import java.time.LocalDateTime;
 import lombok.Builder;
 
-import java.time.LocalDateTime;
-
-
 @Builder
-public record Permission (
-    String id,
-    String name,
-    String description,
-    LocalDateTime createdAt,
-    LocalDateTime modified
-){}
+public record Permission(String id, String name, String description, LocalDateTime createdAt, LocalDateTime modified) {}

@@ -1,19 +1,18 @@
 package com.a3shield.spring.context;
 
-import com.a3shield.core.tenant.Tenants;
-import com.a3shield.enforcer.context.RequestContext;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.a3shield.core.model.Subject;
 import com.a3shield.core.model.SubjectType;
 import com.a3shield.core.model.Target;
+import com.a3shield.core.tenant.Tenants;
+import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.spring.tenant.TenantContextHolder;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class HoldersTest {
 
@@ -21,10 +20,8 @@ class HoldersTest {
     void setUp() {
         // static wiring the auto-configuration normally performs
         new TargetContextHolder(new TargetContextBuilder());
-        new SubjectContext(() -> Subject.builder()
-                .id("1")
-                .type(SubjectType.USER)
-                .build());
+        new SubjectContext(
+                () -> Subject.builder().id("1").type(SubjectType.USER).build());
     }
 
     @AfterEach
@@ -93,7 +90,7 @@ class HoldersTest {
 
         TargetContextHolder.clearTargetContext();
         // cleared holder rebuilds on next access
-        assertThat(TargetContextHolder.getTargetContext(
-                List.of(new TargetContextBuilderTest.Document("2", "b")))).isNotEmpty();
+        assertThat(TargetContextHolder.getTargetContext(List.of(new TargetContextBuilderTest.Document("2", "b"))))
+                .isNotEmpty();
     }
 }

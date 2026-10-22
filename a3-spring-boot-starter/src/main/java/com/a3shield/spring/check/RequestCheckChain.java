@@ -1,11 +1,10 @@
 package com.a3shield.spring.check;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.core.OrderComparator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.core.OrderComparator;
 
 /**
  * Runs {@link RequestCheck}s in order; the first denial short-circuits the

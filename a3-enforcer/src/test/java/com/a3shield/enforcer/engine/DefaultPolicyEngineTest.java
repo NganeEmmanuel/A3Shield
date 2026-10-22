@@ -1,5 +1,7 @@
 package com.a3shield.enforcer.engine;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.a3shield.core.decision.Decision;
 import com.a3shield.core.decision.DecisionResult;
 import com.a3shield.core.model.Intent;
@@ -15,12 +17,9 @@ import com.a3shield.enforcer.matcher.DefaultPolicyMatcher;
 import com.a3shield.enforcer.policy.Policy;
 import com.a3shield.enforcer.repository.InMemoryPolicyRepository;
 import com.a3shield.enforcer.repository.PolicyRepository;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * Integration-style test for PolicyEngine.
@@ -33,11 +32,7 @@ class DefaultPolicyEngineTest {
     private static PolicyEngine engineFor(Policy... policies) {
         PolicyRepository repo = new InMemoryPolicyRepository(List.of(policies));
         return new DefaultPolicyEngine(
-                repo,
-                new DefaultPolicyMatcher(),
-                new SimpleConditionEvaluator(),
-                new DefaultDecisionCombiner()
-        );
+                repo, new DefaultPolicyMatcher(), new SimpleConditionEvaluator(), new DefaultDecisionCombiner());
     }
 
     @Test
@@ -52,13 +47,8 @@ class DefaultPolicyEngineTest {
                 .build());
 
         RequestContext context = RequestContext.builder()
-                .subject(Subject.builder()
-                        .id("1")
-                        .type(SubjectType.USER)
-                        .build())
-                .resources(List.of(Intent.builder()
-                        .type("document")
-                        .build()))
+                .subject(Subject.builder().id("1").type(SubjectType.USER).build())
+                .resources(List.of(Intent.builder().type("document").build()))
                 .action(new Action("read"))
                 .build();
 

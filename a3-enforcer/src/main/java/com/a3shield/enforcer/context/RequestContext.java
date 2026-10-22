@@ -1,32 +1,36 @@
 package com.a3shield.enforcer.context;
 
-import com.a3shield.enforcer.action.Action;
 import com.a3shield.core.model.Resource;
 import com.a3shield.core.model.Subject;
 import com.a3shield.core.tenant.Tenants;
-import lombok.*;
-
+import com.a3shield.enforcer.action.Action;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor(force = true)
 @Builder
-//we can use an annotation like A3ValidateResources to validate all list of resources. that we it is done on creation of a request context object
+// we can use an annotation like A3ValidateResources to validate all list of resources. that we it is done on creation
+// of a request context object
 public class RequestContext {
 
-    private Subject subject; // this info can be gotten from both the request and DB depending on the usage (based on checks performed)
+    private Subject
+            subject; // this info can be gotten from both the request and DB depending on the usage (based on checks
+    // performed)
     // builder pattern recommended
     @Setter
     private List<Resource> resources;
+
     private Action action;
     private Map<String, Object> context; // time, location, ip, metadata, etc.
+
     @Getter(AccessLevel.NONE)
     private String tenantId; // ADR-0009: every evaluation is tenant-scoped
 
-    public RequestContext(Subject subject, List<Resource> resources, Action action,
-                          Map<String, Object> context, String tenantId) {
+    public RequestContext(
+            Subject subject, List<Resource> resources, Action action, Map<String, Object> context, String tenantId) {
         this.subject = subject;
         this.resources = resources;
         this.action = action;
@@ -47,9 +51,7 @@ public class RequestContext {
 
         for (Resource r : resources) {
             if (!Objects.equals(type, r.resolve("type"))) {
-                throw new IllegalArgumentException(
-                        "Mixed resource types detected in RequestContext"
-                );
+                throw new IllegalArgumentException("Mixed resource types detected in RequestContext");
             }
         }
     }
@@ -60,5 +62,4 @@ public class RequestContext {
         Object type = resources.getFirst().resolve("type");
         return type != null ? type.toString() : null;
     }
-
 }
