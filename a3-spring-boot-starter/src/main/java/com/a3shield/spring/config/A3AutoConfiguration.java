@@ -4,7 +4,8 @@ import com.a3shield.enforcer.AccessEnforcer;
 import com.a3shield.enforcer.decision.DefaultDecisionCombiner;
 import com.a3shield.enforcer.engine.DefaultPolicyEngine;
 import com.a3shield.enforcer.engine.PolicyEngine;
-import com.a3shield.enforcer.evaluator.DslConditionEvaluator;
+import com.a3shield.enforcer.evaluator.CelConditionEvaluator;
+import com.a3shield.enforcer.evaluator.ConditionEvaluator;
 import com.a3shield.enforcer.matcher.DefaultPolicyMatcher;
 import com.a3shield.enforcer.permission.PermissionExtractor;
 import com.a3shield.enforcer.repository.InMemoryPolicyRepository;
@@ -38,11 +39,22 @@ public class A3AutoConfiguration {
         return new InMemoryPolicyRepository(List.of());
     }
 
+    /**
+     * CEL is the canonical condition engine (ADR-0002); the legacy DSL
+     * evaluator remains available for hosts that prefer it — define a
+     * {@link ConditionEvaluator} bean to override.
+     */
+    @Bean
+    @ConditionalOnMissingBean(ConditionEvaluator.class)
+    public ConditionEvaluator conditionEvaluator() {
+        return new CelConditionEvaluator();
+    }
+
     @Bean
     @ConditionalOnMissingBean
-    public PolicyEngine policyEngine(PolicyRepository repo) {
+    public PolicyEngine policyEngine(PolicyRepository repo, ConditionEvaluator conditionEvaluator) {
         return new DefaultPolicyEngine(
-                repo, new DefaultPolicyMatcher(), new DslConditionEvaluator(), new DefaultDecisionCombiner());
+                repo, new DefaultPolicyMatcher(), conditionEvaluator, new DefaultDecisionCombiner());
     }
 
     @Bean
