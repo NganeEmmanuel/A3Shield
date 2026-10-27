@@ -19,7 +19,7 @@ a3shield (parent pom, v0.1.0)
 │   └── tenant/              # Tenants constants (DEFAULT_TENANT="default", GLOBAL="*")
 ├── a3-enforcer             # Framework-agnostic policy engine (depends only on a3-core)
 │   ├── expression/          # Expression record, parser (==, !=, >, <), ValueResolver
-│   ├── evaluator/           # SimpleConditionEvaluator, DslConditionEvaluator (AND/OR, ANY-match list semantics)
+│   ├── evaluator/           # CelConditionEvaluator (canonical, ADR-0002), DslConditionEvaluator (legacy compat), SimpleConditionEvaluator
 │   ├── cache/               # ExpressionCache (thread-safe, parsed-expression cache)
 │   ├── matcher/             # DefaultPolicyMatcher (tenant first, then subject/resource/action)
 │   ├── decision/            # DecisionCombiner + DefaultDecisionCombiner (deny-overrides)
@@ -41,7 +41,7 @@ a3shield (parent pom, v0.1.0)
 **Key design points:**
 - `RequestContext.resources` is a `List<Resource>` — homogeneous types enforced at construction (mixed types throw).
 - `Target` = the resource being acted on (post-execution, e.g. method return value); `Intent` = the intended action/resource (pre-execution). Both extend `Resource`; every resource has a `type:id` URN (`Resource.urn()`).
-- DSL conditions like `resource.ownerId == subject.id`, with `AND`/`OR` and `==`, `!=`, `>`, `<`. List values use ANY-match semantics. (CEL migration is M3.)
+- **Conditions are CEL (ADR-0002)**: `CelConditionEvaluator` is the canonical engine (`cel-standalone` 0.5.1, non-Turing-complete, fail-closed, 512-char cap). Legacy simple syntax (`AND`/`OR`, bareword literals like `USER`) is auto-translated to CEL by the facade; `DslConditionEvaluator` remains as compat. Activation exposes `subject`, `resource` (first), `resources` (all, for `.exists()` ANY-match), `context`, `tenant`. One semantic difference vs legacy: ordered comparisons (`>` `<`) against string-typed numbers fail closed — store numbers as numbers.
 - Decision strategy: **DENY overrides ALLOW, default DENY**. `NOT_APPLICABLE` = policy matched but condition was false (does not force DENY). `PolicyEngine.evaluate` returns a rich `DecisionResult` (reason, fired policy ids, obligations).
 - **Tenancy (ADR-0009):** every evaluation carries a tenant (`default` when unset). Policies are tenant-scoped; `tenantId == "*"` = global. Precedence: **most specific applicable scope wins** — tenant policies override global ones when both match; global applies only when no tenant policy is applicable. Starter resolves tenants via `TenantResolver` (default → `default`).
 - `PolicyRepository.findAll(tenantId, action, resourceType)` is the scoped-lookup contract; null policy action/resource means "matches anything".
