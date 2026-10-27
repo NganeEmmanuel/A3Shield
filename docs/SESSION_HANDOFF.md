@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-10-26 (session 6) — M3 complete: CEL evaluation engine (branch `feature/cel-evaluator`)
+
+**Goal of session:** implement M3 (ADR-0002) — CEL as the canonical condition engine.
+
+**What was done:**
+0. **Housekeeping first:** the CI PR and a batch of Dependabot majors (Spring Boot 4.1.1, JUnit 6.1.3, action majors) had been merged to `master` — verified build green locally (52 tests), then fast-forwarded `develop` and `staging` to master. M3 branched from `develop` per workflow.
+1. `cel-standalone` 0.5.1 added to `a3-enforcer`; **`CelConditionEvaluator`**: dyn-declared activation (`subject`, `resource`, `resources`, `context`, `tenant`), compiled programs cached per expression, **fail-closed** on compile/eval errors, 512-char cap (runtime-edited policies), non-Turing-complete termination.
+2. **Legacy facade:** `AND`/`OR`→`&&`/`||`, bareword literals quoted (CEL keywords like `in`/`true` protected); native CEL (parens, `.exists()` macros for ANY-match across `resources`) passes through.
+3. **Starter default swapped:** `A3AutoConfiguration` wires `CelConditionEvaluator` as a `@ConditionalOnMissingBean(ConditionEvaluator.class)` bean; `DslConditionEvaluator` remains for hosts who want it.
+4. **Tests (77 green total):** 13 CEL unit tests + 12-case parity suite (legacy vs CEL — full agreement on the corpus). **One documented semantic difference** (unit-test pinned): ordered comparisons (`>`/`<`) against *string-typed numbers* fail closed in CEL (legacy coerced) — store numbers as numbers. Mixed-type equality is NOT a difference: CEL's heterogeneous equality agrees with legacy coercion.
+5. Network was flaky (DNS outages) — CEL jar fetched via retry loop from Central directly into the local repo (sha1 verified); CI unaffected.
+
+**State:** work on `feature/cel-evaluator` (branched from develop), `./mvnw clean verify` + `spotless:check` green, pushed for owner PR.
+
+**Decisions made:** `related()` custom-function bridge deferred to M7 (belongs with ReBAC, activation names reserved); facade scope = legacy grammar only (native CEL must be written natively); heterogeneous equality accepted as parity-compatible.
+
+**Suggested next steps:** M4 — policy migrations: decide file format (JSON vs YAML, last open format question), `a3-policy-mgmt` module skeleton, `PolicyMigrationRunner` with checksums + applied-versions table, policy tests in files. Also pending owner actions: branch protection still not enabled; future work branches cut from `develop`.
+
+---
+
 ## 2026-10-22 (session 5) — Workflow & CI established (first PR-based work)
 
 **Goal of session:** establish branching model + CI per owner requirements (external contributors, progressive commits, standard practices, docs-only changes skip builds, deterministic local==CI parity).

@@ -42,12 +42,15 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 - [x] Null-safety fixes: `getResourceType()` returns null on empty (was NPE); matcher handles null action
 - [x] Tests: 52 green (3 core / 27 enforcer / 22 starter) incl. tenant precedence, repo filtering, URN, relations, tenant propagation
 
-### M3 — CEL evaluation engine 🔜 NEXT (ADR-0002)
-- [ ] Add `cel-java` to enforcer; `CelConditionEvaluator` behind the SPI with deadline/complexity budget
-- [ ] Register custom functions bridge (prep for `related()`); simple-syntax facade for legacy conditions (`.exists()` for ANY-match)
-- [ ] Evaluation parity test suite: every legacy DSL expression verified against CEL result
+### M3 — CEL evaluation engine ✅ DONE (2026-10-26, ADR-0002)
+- [x] `cel-standalone` 0.5.1 in enforcer; `CelConditionEvaluator` behind the SPI — canonical engine, wired as the starter default (`@ConditionalOnMissingBean(ConditionEvaluator.class)`; DSL stays available)
+- [x] Safety: fail-closed on compile/eval errors, 512-char expression cap (runtime-edited policies, ADR-0003); CEL non-Turing-complete = guaranteed termination; compiled programs cached per expression
+- [x] Legacy simple-syntax facade: `AND`/`OR` → `&&`/`||`, bareword literals quoted (CEL keywords protected); activation exposes `subject`/`resource`/`resources`/`context`/`tenant`
+- [x] ANY-match list semantics via native `resources.exists(r, ...)` macro
+- [x] Parity suite: 11-case corpus evaluates identically under legacy DSL and CEL; one documented difference (ordered comparison vs string-typed number fails closed in CEL) pinned by unit test
+- [ ] Custom `related()` function bridge — deferred to M7 (ReBAC) where it belongs; activation model already reserves the names
 
-### M4 — Policy lifecycle: migrations 📋 PLANNED (ADR-0003)
+### M4 — Policy lifecycle: migrations 🔜 NEXT (ADR-0003)
 - [ ] Decide policy file format: JSON vs YAML (last open format question)
 - [ ] `a3-policy-mgmt` module: file layout `a3/policies/V<n>__<name>`, tenant-scope header, checksums
 - [ ] `PolicyMigrationRunner`: apply-on-startup, applied-versions tracking, `onConflict` (FAIL default / OVERWRITE / SKIP)
@@ -86,6 +89,7 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 4. What exactly goes into v0.1.0 for publishing (M2+M3 minimum? include M4?) — owner call.
 
 ## Changelog (recent)
+- 2026-10-26 (session 6): M3 complete — CEL canonical evaluator (`cel-standalone` 0.5.1) with legacy-syntax facade, fail-closed semantics, compiled-program cache, parity suite (12 cases, engines agree; one pinned difference); starter default evaluator swapped with `@ConditionalOnMissingBean` back-off. Also: develop/staging synced after CI+dependabot merges landed on master. 77 tests green.
 - 2026-10-22 (session 5): Workflow & CI established — `develop`/`staging` permanent branches (synced with master), Conventional Commits + branch naming, Maven wrapper (pinned 3.9.11), Spotless baseline (palantir), CI workflows (build+tests+CodeQL path-filtered; gitleaks + dependency-review always; Dependabot), PR template, CONTRIBUTING rewritten. Branch protection = manual step pending.
 - 2026-10-22 (session 4): M2 complete — `a3-core` extracted (models/decisions/exceptions, zero runtime deps), `DecisionResult` with reasons + fired policy ids everywhere, tenant dimension end-to-end (contracts, real repository filtering, most-specific-scope precedence, starter `TenantResolver`), `type:id` URN convention, `RelationResolver` SPI, null-safety fixes. 52 tests green.
 - 2026-10-21 (session 3): M1 complete — aspect fixes (exception passthrough, intent-object bug, `@A3Intent` target), unchecked `AccessDeniedException`, RequestCheck SPI + filter with ThreadLocal cleanup, real auto-configuration registration, 19 starter tests, JDK-23 test toolchain pins. 34 tests green total.

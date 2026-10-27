@@ -23,6 +23,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- CEL expression engine (ADR-0002) -->
+        <dependency>
+            <groupId>org.projectnessie.cel</groupId>
+            <artifactId>cel-standalone</artifactId>
+            <version>0.5.1</version>
+        </dependency>
+
         <!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
