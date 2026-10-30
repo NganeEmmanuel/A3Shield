@@ -79,6 +79,8 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
      */
     private boolean matchSubject(Map<String, Object> policySubject, Subject subject) {
         if (policySubject == null) return true;
+        // a policy with subject constraints never matches a request without a subject (fail closed)
+        if (subject == null) return false;
 
         for (Map.Entry<String, Object> entry : policySubject.entrySet()) {
             Object value = getSubjectField(subject, entry.getKey());
@@ -101,7 +103,7 @@ public class DefaultPolicyMatcher implements PolicyMatcher {
     private Object getSubjectField(Subject subject, String key) {
         return switch (key) {
             case "id" -> subject.getId();
-            case "type" -> subject.getType().name();
+            case "type" -> subject.getType() == null ? null : subject.getType().name();
             default -> subject.getAttributes() != null ? subject.getAttributes().get(key) : null;
         };
     }
