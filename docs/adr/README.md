@@ -26,3 +26,4 @@ Never implement against a superseded or rejected ADR.
 | [0007](ADR-0007-embedded-first-engine-boundary.md) | Embedded library first; service mode later via clean engine boundary | Accepted |
 | [0008](ADR-0008-rebac-readiness.md) | ReBAC: reserve contracts now, implement later | Accepted |
 | [0009](ADR-0009-multi-tenant-day-one.md) | Multi-tenancy is a day-one constraint | Accepted |
+| [0010](ADR-0010-yaml-policy-format.md) | Policy migration files use YAML | Accepted |
