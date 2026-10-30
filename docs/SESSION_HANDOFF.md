@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-10-30 (session 7) — M4 complete: policy migrations (branch `feature/policy-migrations`)
+
+**Goal of session:** implement M4 (ADR-0003) — versioned policy migration files applied at startup, with embedded policy tests.
+
+**What was done:**
+1. **ADR-0010 accepted:** policy files are YAML (comments for policy intent, K8s-style convention, one small dependency; SnakeYAML safe map-based loading only — never target-class instantiation). Open format question closed.
+2. **New `a3-policy-mgmt` module** (Spring-free, depends on a3-enforcer): `a3/policies/V<n>__<name>.yaml|.yml` discovery (classpath + filesystem), SHA-256 checksums, duplicate-version detection, tenant-scope header (default `default`).
+3. **`PolicyMigrationRunner`:** version-ordered, fail-closed. Key design decision: **discovered files are always the effective policy baseline** — the applied-versions store (`AppliedMigrationsStore`: in-memory + JDBC with portable upsert) governs whether embedded tests re-run and how checksum conflicts resolve (`onConflict`: FAIL aborts startup, OVERWRITE re-applies, SKIP logs drift; default FAIL). A failing policy test aborts startup with a clear message.
+4. **Embedded policy tests:** each file's `tests:` block builds RequestContexts and evaluates against the migration's own policies via CEL — the guardrails that make runtime editing safe later (M5).
+5. **`MigrationPolicyRepository`:** tenant + global scope, later migration replaces same policy id (that IS migration versioning).
+6. **Starter auto-config:** classpath migrations automatically become the `PolicyRepository` bean; JDBC applied-store when a `DataSource` exists; hosts override with their own bean to bypass. Covered by an ApplicationContextRunner test.
+7. **Enforcer hardening:** matcher NPEs fixed (null subject fails closed against constrained policies; null subject-type no longer NPEs).
+8. **101 tests green** (3 core / 53 enforcer / 21 policy-mgmt / 24 starter).
+
+**State:** work on `feature/policy-migrations` (from develop), `./mvnw clean verify` + `spotless:check` green, pushed for owner PR.
+
+**Decisions made:** effective-policy bodies are NOT persisted in M4 (checksums only) — persistence lands with M5's admin layer where mutations need a durable store; SKIP semantics in M4 = keep file version in the effective set, log drift, don't re-record checksum (no stored bodies to restore); YAML chosen over JSON (ADR-0010).
+
+**Suggested next steps:** M5 — runtime admin layer: persist effective policies (JDBC PolicyStore), `PolicyAdminApi` SPI (tenant-scoped CRUD + validate-before-commit via policy tests + audit log), drift report, cache invalidation design for multi-instance. Example app (M8) increasingly valuable now that the policy file story exists.
+
+---
+
 ## 2026-10-26 (session 6) — M3 complete: CEL evaluation engine (branch `feature/cel-evaluator`)
 
 **Goal of session:** implement M3 (ADR-0002) — CEL as the canonical condition engine.

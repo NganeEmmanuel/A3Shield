@@ -10,6 +10,11 @@ import com.a3shield.enforcer.matcher.DefaultPolicyMatcher;
 import com.a3shield.enforcer.permission.PermissionExtractor;
 import com.a3shield.enforcer.repository.InMemoryPolicyRepository;
 import com.a3shield.enforcer.repository.PolicyRepository;
+import com.a3shield.policymgmt.discovery.PolicyMigrationDiscoverer;
+import com.a3shield.policymgmt.runtime.AppliedMigrationsStore;
+import com.a3shield.policymgmt.runtime.InMemoryAppliedMigrationsStore;
+import com.a3shield.policymgmt.runtime.JdbcAppliedMigrationsStore;
+import com.a3shield.policymgmt.runtime.PolicyMigrationRunner;
 import com.a3shield.spring.aspect.A3AuthorizationAspect;
 import com.a3shield.spring.aspect.A3SecurePolicyAspect;
 import com.a3shield.spring.context.SubjectContext;
@@ -32,11 +37,38 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 public class A3AutoConfiguration {
 
+    /**
+     * Policy repository: when migration files exist under
+     * {@code a3/policies/} on the classpath they are applied at startup
+     * (tests first, fail-closed — ADR-0003) and become the effective policy
+     * set. Without files the repository is empty; hosts can also define
+     * their own {@link PolicyRepository} bean to bypass migrations entirely.
+     *
+     * <p>Applied-versions tracking uses a JDBC store when a
+     * {@link javax.sql.DataSource} bean is present (conflict detection
+     * across restarts), otherwise in-memory (single-run).</p>
+     */
     @Bean
     @ConditionalOnMissingBean
-    public PolicyRepository policyRepository() {
-        // Empty by default: host apps provide policies (file store lands in M4)
-        return new InMemoryPolicyRepository(List.of());
+    public PolicyRepository policyRepository(
+            ObjectProvider<AppliedMigrationsStore> appliedMigrationsStore,
+            ObjectProvider<javax.sql.DataSource> dataSource,
+            ObjectProvider<ConditionEvaluator> conditionEvaluator) {
+
+        var discoverer = new PolicyMigrationDiscoverer();
+        var migrations = discoverer.discoverFromClasspath(A3AutoConfiguration.class.getClassLoader());
+
+        if (migrations.isEmpty()) {
+            return new InMemoryPolicyRepository(List.of());
+        }
+
+        AppliedMigrationsStore store = appliedMigrationsStore.getIfAvailable(() -> {
+            javax.sql.DataSource ds = dataSource.getIfAvailable();
+            return ds != null ? new JdbcAppliedMigrationsStore(ds) : new InMemoryAppliedMigrationsStore();
+        });
+
+        var runner = new PolicyMigrationRunner(store, conditionEvaluator.getIfAvailable(CelConditionEvaluator::new));
+        return runner.apply(migrations);
     }
 
     /**

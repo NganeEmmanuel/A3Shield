@@ -64,6 +64,13 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- A3 Policy Mgmt (migrations) -->
+        <dependency>
+            <groupId>com.a3shield</groupId>
+            <artifactId>a3-policy-mgmt</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
         <!-- AOP -->
         <dependency>
