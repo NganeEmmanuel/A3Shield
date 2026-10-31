@@ -1,0 +1,33 @@
+# Starter auto-configuration test fixture: one tenant-scoped policy with
+# embedded tests. Discovered at a3/policies on the starter test classpath.
+tenant: default
+onConflict: FAIL
+policies:
+  - id: starter-doc-read
+    effect: ALLOW
+    resource: document
+    action: read
+    subject:
+      type: USER
+    condition: "resource.ownerId == subject.id"
+tests:
+  - name: owner can read
+    expect: ALLOW
+    subject:
+      id: "1"
+      type: USER
+    resources:
+      - type: document
+        attributes:
+          ownerId: "1"
+    action: read
+  - name: stranger denied
+    expect: DENY
+    subject:
+      id: "2"
+      type: USER
+    resources:
+      - type: document
+        attributes:
+          ownerId: "1"
+    action: read

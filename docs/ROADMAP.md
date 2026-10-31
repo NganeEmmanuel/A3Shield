@@ -50,19 +50,26 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 - [x] Parity suite: 11-case corpus evaluates identically under legacy DSL and CEL; one documented difference (ordered comparison vs string-typed number fails closed in CEL) pinned by unit test
 - [ ] Custom `related()` function bridge — deferred to M7 (ReBAC) where it belongs; activation model already reserves the names
 
-### M4 — Policy lifecycle: migrations 🔜 NEXT (ADR-0003)
-- [ ] Decide policy file format: JSON vs YAML (last open format question)
-- [ ] `a3-policy-mgmt` module: file layout `a3/policies/V<n>__<name>`, tenant-scope header, checksums
-- [ ] `PolicyMigrationRunner`: apply-on-startup, applied-versions tracking, `onConflict` (FAIL default / OVERWRITE / SKIP)
-- [ ] Policy tests embedded in files; apply aborts on test failure
-- [ ] Persistent `PolicyStore` (JDBC impl) alongside in-memory; `PolicySource` SPI
+### M4 — Policy lifecycle: migrations ✅ DONE (2026-10-30, ADR-0003 + ADR-0010)
+- [x] Format decided: **YAML** (ADR-0010; SnakeYAML, safe map-based loading, comments for policy intent)
+- [x] `a3-policy-mgmt` module (Spring-free): file layout `a3/policies/V<n>__<name>.yaml|.yml`, tenant-scope header (default `default`), SHA-256 checksums
+- [x] `PolicyMigrationRunner`: version-ordered apply, duplicate-version detection, applied-versions tracking (`AppliedMigrationsStore`: in-memory + JDBC portable upsert), `onConflict` FAIL/OVERWRITE/SKIP — discovered files always form the effective baseline; the store governs test re-runs and conflict resolution
+- [x] Embedded policy tests per file, executed at apply time against the migration's own policies via CEL — failing test aborts startup (fail-closed)
+- [x] `MigrationPolicyRepository` (tenant + global scope; a later migration replaces the same policy id)
+- [x] Starter auto-config: classpath migrations become the `PolicyRepository` bean automatically (JDBC applied-store when a DataSource exists); hosts override with their own bean to bypass
+- [x] Effective-policy persistence (policy bodies in DB) — deliberately deferred to M5 where runtime admin edits need it; M4 records checksums only
+- [x] 21 module tests + starter context test; 101 green total
 
-### M5 — Runtime admin layer 📋 PLANNED (ADR-0003, ADR-0007)
-- [ ] `PolicyAdminApi` SPI + REST exposure in starter (always tenant-scoped)
-- [ ] Validate-before-commit (run policy tests on every mutation); audit log (who/when/diff)
-- [ ] Drift report endpoint (file vs store); cache invalidation strategy for multi-instance deployments
+### M5 — Runtime admin layer ✅ DONE (2026-10-31, ADR-0003 + ADR-0011)
+- [x] Durable `EffectivePolicyStore` (in-memory + JDBC, YAML bodies, origin provenance MIGRATION/ADMIN) — admin edits survive restarts and are shared across instances
+- [x] `PolicyStoreSynchronizer`: files populate the store; admin edits protected per `onConflict` (FAIL aborts startup, OVERWRITE resets + audited, SKIP keeps + drift audited); policies removed from files cleaned up, admin edits survive
+- [x] `PolicyAdminApi` SPI + `DefaultPolicyAdminService`: tenant-scoped CRUD with **validate-before-commit** (CEL compile check + policy's stored/caller tests against the candidate set — failing validation writes nothing) and full **audit trail** (in-memory + JDBC, before/after bodies)
+- [x] Drift report (files vs store: MISSING_IN_STORE / ADMIN_EDITED / DIVERGED / ADMIN_ONLY / REMOVED_FROM_FILE)
+- [x] `StoreBackedPolicyRepository` with **poll-based state-version invalidation** (ADR-0011; default 5s, no external infra; pub/sub escalation path open)
+- [x] Starter: opt-in REST admin API (`a3shield.admin-api.enabled`, tenant-scoped endpoints, 422 on validation rejection) — endpoint protection is the host's responsibility (documented)
+- [x] 40 module tests + starter config tests; 122 green total
 
-### M6 — Post-execution per-row filtering 📋 PLANNED (ADR-0004)
+### M6 — Post-execution per-row filtering 🔜 NEXT (ADR-0004)
 - [ ] `@A3SecurePolicy` per-row filtering for collections; single-object deny-or-allow; documented default + strict mode
 - [ ] Route-level interceptor enforcement (intent check from route/method/params)
 - [ ] Audit events at all three enforcement points
@@ -83,12 +90,12 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 - [ ] a3-server PDP mode; admin dashboard; JS/Python SDKs; distributed evaluation
 
 ## Open Design Questions
-1. Policy file format: JSON vs YAML (decide at M4 kickoff).
-2. Per-row filtering default: silent filter vs deny-on-any-failure (ADR-0004 leans silent-with-strict-option — confirm with example app in M6).
-3. Cache invalidation mechanism for clustered deployments: TTL vs poll vs pub-sub (decide in M5).
-4. What exactly goes into v0.1.0 for publishing (M2+M3 minimum? include M4?) — owner call.
+1. Per-row filtering default: silent filter vs deny-on-any-failure (ADR-0004 leans silent-with-strict-option — confirm with example app in M6).
+2. What exactly goes into v0.1.0 for publishing (M2+M3 minimum? include M4?) — owner call.
 
 ## Changelog (recent)
+- 2026-10-31 (session 8): M5 complete — runtime admin layer: durable EffectivePolicyStore (in-mem + JDBC), PolicyStoreSynchronizer (files vs admin edits, onConflict), PolicyAdminApi with validate-before-commit + audit trail + drift report, StoreBackedPolicyRepository (poll-based invalidation, ADR-0011), opt-in REST admin API. 122 tests green.
+- 2026-10-30 (session 7): M4 complete — `a3-policy-mgmt`: YAML policy migrations (ADR-0010), SHA-256 checksums, version-ordered apply with `onConflict` FAIL/OVERWRITE/SKIP, embedded policy tests (fail-closed startup), in-memory + JDBC applied-versions stores, `MigrationPolicyRepository`, starter auto-wiring; matcher null-subject/type NPEs fixed. 101 tests green.
 - 2026-10-26 (session 6): M3 complete — CEL canonical evaluator (`cel-standalone` 0.5.1) with legacy-syntax facade, fail-closed semantics, compiled-program cache, parity suite (12 cases, engines agree; one pinned difference); starter default evaluator swapped with `@ConditionalOnMissingBean` back-off. Also: develop/staging synced after CI+dependabot merges landed on master. 77 tests green.
 - 2026-10-22 (session 5): Workflow & CI established — `develop`/`staging` permanent branches (synced with master), Conventional Commits + branch naming, Maven wrapper (pinned 3.9.11), Spotless baseline (palantir), CI workflows (build+tests+CodeQL path-filtered; gitleaks + dependency-review always; Dependabot), PR template, CONTRIBUTING rewritten. Branch protection = manual step pending.
 - 2026-10-22 (session 4): M2 complete — `a3-core` extracted (models/decisions/exceptions, zero runtime deps), `DecisionResult` with reasons + fired policy ids everywhere, tenant dimension end-to-end (contracts, real repository filtering, most-specific-scope precedence, starter `TenantResolver`), `type:id` URN convention, `RelationResolver` SPI, null-safety fixes. 52 tests green.

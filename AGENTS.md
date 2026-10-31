@@ -17,6 +17,12 @@ a3shield (parent pom, v0.1.0)
 │   ├── decision/            # Decision enum, DecisionResult record (reason, matchedPolicyIds, obligations)
 │   ├── exception/           # AccessDeniedException (unchecked, carries DecisionResult)
 │   └── tenant/              # Tenants constants (DEFAULT_TENANT="default", GLOBAL="*")
+├── a3-policy-mgmt          # Versioned policy migrations (ADR-0003, ADR-0010) — Spring-free, depends on a3-enforcer
+│   ├── migration/            # PolicyMigration, OnConflict, PolicyTestCase models
+│   ├── parse/                # PolicyMigrationParser SPI + YamlPolicyMigrationParser (safe map loading)
+│   ├── discovery/            # PolicyMigrationDiscoverer (classpath a3/policies/ or directory, V<n>__name.yaml)
+│   └── runtime/              # PolicyMigrationRunner (tests-first, fail-closed, checksum conflicts),
+│                             # AppliedMigrationsStore (in-memory + JDBC), MigrationPolicyRepository
 ├── a3-enforcer             # Framework-agnostic policy engine (depends only on a3-core)
 │   ├── expression/          # Expression record, parser (==, !=, >, <), ValueResolver
 │   ├── evaluator/           # CelConditionEvaluator (canonical, ADR-0002), DslConditionEvaluator (legacy compat), SimpleConditionEvaluator
