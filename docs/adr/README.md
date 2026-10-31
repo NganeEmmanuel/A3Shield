@@ -27,3 +27,4 @@ Never implement against a superseded or rejected ADR.
 | [0008](ADR-0008-rebac-readiness.md) | ReBAC: reserve contracts now, implement later | Accepted |
 | [0009](ADR-0009-multi-tenant-day-one.md) | Multi-tenancy is a day-one constraint | Accepted |
 | [0010](ADR-0010-yaml-policy-format.md) | Policy migration files use YAML | Accepted |
+| [0011](ADR-0011-policy-cache-invalidation.md) | Policy cache invalidation: poll-based state version | Accepted |

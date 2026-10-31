@@ -116,6 +116,11 @@ public class PolicyMigrationRunner {
                 migration.getTests().size());
     }
 
+    /** Run a migration's embedded tests (public: the store synchronizer validates pending migrations). */
+    public void runTestsOnly(PolicyMigration migration) {
+        runPolicyTests(migration);
+    }
+
     /** Policy tests run against the migration's own policies in isolation. */
     private void runPolicyTests(PolicyMigration migration) {
         if (migration.getTests().isEmpty()) {

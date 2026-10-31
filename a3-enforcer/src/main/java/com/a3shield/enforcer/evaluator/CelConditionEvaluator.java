@@ -94,6 +94,21 @@ public class CelConditionEvaluator implements ConditionEvaluator {
         }
     }
 
+    /**
+     * Syntax-only check: does the expression compile (after legacy-syntax
+     * translation)? Used by the admin API to validate policy conditions
+     * before committing them (ADR-0003).
+     */
+    public boolean compiles(String expression) {
+        if (expression == null || expression.isBlank()) {
+            return true;
+        }
+        if (expression.length() > MAX_EXPRESSION_LENGTH) {
+            return false;
+        }
+        return compiledCache.computeIfAbsent(toCel(expression), this::compile).isPresent();
+    }
+
     private Optional<Program> compile(String celExpression) {
         try {
             Env.AstIssuesTuple compiled = env.compile(celExpression);

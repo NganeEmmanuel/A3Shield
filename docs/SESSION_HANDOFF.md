@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-10-31 (session 8) — M5 complete: runtime admin layer (branch `feature/runtime-admin`)
+
+**Goal of session:** implement M5 (ADR-0003) — runtime policy administration without redeployment.
+
+**What was done:**
+1. **Durable `EffectivePolicyStore`** (in-memory + JDBC): policies persist as YAML bodies with provenance (`Origin.MIGRATION` vs `ORIGIN.ADMIN`), migration version, and attached validation tests. SPI contract includes `stateVersion()` (bumped on every mutation) and `tenants()`.
+2. **`PolicyStoreSynchronizer`** (supersedes the M4 in-memory baseline in the starter): files populate the store at startup; runtime admin edits carry `Origin.ADMIN` and are never silently overwritten — file-vs-admin conflicts resolve via the file's `onConflict` (FAIL aborts startup, OVERWRITE resets + audited, SKIP keeps + drift audited). File-removed policies are cleaned from the store; admin policies survive file changes.
+3. **`PolicyAdminApi` + `DefaultPolicyAdminService`**: tenant-scoped CRUD with **validate-before-commit** — CEL compile check plus the policy's validation tests (caller-supplied, else the stored suite from the originating migration file) run against the candidate effective set; any failure rejects the mutation with nothing written. Every mutation audited (actor, operation, before/after YAML). Drift report compares files vs store (5 kinds).
+4. **`StoreBackedPolicyRepository`**: evaluation reads the store with **poll-based state-version invalidation** (ADR-0011: default 5s poll, atomic snapshot swap; no external infra; pub/sub escalation path left open).
+5. **Starter**: opt-in REST admin API (`a3shield.admin-api.enabled=true`, default OFF) — list/create/update/delete/audit/drift under `/a3/admin/**`, validation failures → 422. **Endpoint security is the host's responsibility** (documented in config + controller).
+6. **122 tests green** (3 core / 53 enforcer / 40 policy-mgmt / 26 starter), incl. JDBC stores on H2 (restart semantics), synchronizer conflict matrix, admin validation scenarios.
+
+**State:** on `feature/runtime-admin` (from develop), `./mvnw clean verify` + `spotless:check` green, pushed for owner PR.
+
+**Decisions made:** ADR-0011 (poll-based version over TTL/pub-sub — infra-free, pub/sub later behind same SPI); update() keeps stored tests when caller omits them (admin edits stay validated against the file's suite); policy id immutable on update (delete+create instead); admin API disabled by default (secure-by-default posture).
+
+**Suggested next steps:** M6 — per-row post-execution filtering + route-level enforcement + audit events at all three enforcement points (ADR-0004). The example app (M8) is now very compelling: migrations + CEL + admin API form a demoable story. Open Q: v0.1.0 publishing scope.
+
+---
+
 ## 2026-10-30 (session 7) — M4 complete: policy migrations (branch `feature/policy-migrations`)
 
 **Goal of session:** implement M4 (ADR-0003) — versioned policy migration files applied at startup, with embedded policy tests.

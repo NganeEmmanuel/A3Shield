@@ -6,7 +6,7 @@ import com.a3shield.enforcer.action.Action;
 import com.a3shield.enforcer.policy.Policy;
 import com.a3shield.enforcer.repository.InMemoryPolicyRepository;
 import com.a3shield.enforcer.repository.PolicyRepository;
-import com.a3shield.policymgmt.runtime.MigrationPolicyRepository;
+import com.a3shield.policymgmt.runtime.StoreBackedPolicyRepository;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -26,10 +26,10 @@ class A3AutoConfigurationMigrationsTest {
     void classpathMigrationsShouldBecomeThePolicyRepository() {
         runner.run(context -> {
             assertThat(context).hasSingleBean(PolicyRepository.class);
-            assertThat(context.getBean(PolicyRepository.class)).isInstanceOf(MigrationPolicyRepository.class);
+            assertThat(context.getBean(PolicyRepository.class)).isInstanceOf(StoreBackedPolicyRepository.class);
 
-            var repository = context.getBean(MigrationPolicyRepository.class);
-            var policies = repository.findAll("default", new Action("read"), "document");
+            // classpath migration content landed in the effective store
+            var policies = context.getBean(PolicyRepository.class).findAll("default", new Action("read"), "document");
             assertThat(policies).extracting(Policy::getId).containsExactly("starter-doc-read");
         });
     }
