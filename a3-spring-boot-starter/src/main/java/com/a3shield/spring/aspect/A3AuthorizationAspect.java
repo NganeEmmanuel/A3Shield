@@ -1,5 +1,6 @@
 package com.a3shield.spring.aspect;
 
+import com.a3shield.core.audit.EnforcementAuditEvent;
 import com.a3shield.core.decision.DecisionResult;
 import com.a3shield.core.exception.AccessDeniedException;
 import com.a3shield.core.model.Resource;
@@ -7,6 +8,7 @@ import com.a3shield.enforcer.AccessEnforcer;
 import com.a3shield.enforcer.context.RequestContext;
 import com.a3shield.spring.annotation.A3Authorize;
 import com.a3shield.spring.annotation.A3Intent;
+import com.a3shield.spring.audit.A3EnforcementAuditor;
 import com.a3shield.spring.context.IntentContentHolder;
 import com.a3shield.spring.context.RequestContextHolder;
 import java.lang.annotation.Annotation;
@@ -21,14 +23,17 @@ import org.slf4j.LoggerFactory;
  * Pre-execution enforcement: intercepts methods annotated with {@link A3Authorize},
  * builds an Intent resource from the {@link A3Intent}-annotated parameter and asks
  * the enforcer whether the request may proceed (ADR-0004, enforcement point 2).
+ * Every decision is published as an {@link EnforcementAuditEvent}.
  */
 @Aspect
 public class A3AuthorizationAspect {
     private static final Logger logger = LoggerFactory.getLogger(A3AuthorizationAspect.class);
     private final AccessEnforcer enforcer;
+    private final A3EnforcementAuditor auditor;
 
-    public A3AuthorizationAspect(AccessEnforcer enforcer) {
+    public A3AuthorizationAspect(AccessEnforcer enforcer, A3EnforcementAuditor auditor) {
         this.enforcer = enforcer;
+        this.auditor = auditor;
     }
 
     @Around("@annotation(a3Authorize)")
@@ -70,6 +75,13 @@ public class A3AuthorizationAspect {
         RequestContext context = RequestContextHolder.getRequestContext(List.of(intent));
 
         DecisionResult result = enforcer.enforce(context);
+        auditor.publish(
+                EnforcementAuditEvent.POINT_ANNOTATION,
+                context.getTenantId(),
+                context.getSubject() == null ? null : context.getSubject().getId(),
+                context.getAction() == null ? null : context.getAction().getName(),
+                List.of(intent),
+                result);
         if (!result.isAllowed()) {
             throw new AccessDeniedException("Access Denied: " + result.reason(), result);
         }
