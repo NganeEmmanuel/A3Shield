@@ -69,10 +69,12 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 - [x] Starter: opt-in REST admin API (`a3shield.admin-api.enabled`, tenant-scoped endpoints, 422 on validation rejection) — endpoint protection is the host's responsibility (documented)
 - [x] 40 module tests + starter config tests; 122 green total
 
-### M6 — Post-execution per-row filtering 🔜 NEXT (ADR-0004)
-- [ ] `@A3SecurePolicy` per-row filtering for collections; single-object deny-or-allow; documented default + strict mode
-- [ ] Route-level interceptor enforcement (intent check from route/method/params)
-- [ ] Audit events at all three enforcement points
+### M6 — Enforcement points: per-row filtering, routes, audit events ✅ DONE (2026-11-09, ADR-0004)
+- [x] `@A3SecurePolicy(action, strict)`: collection returns evaluated **per row** — default silently filters denied rows; `strict = true` denies the whole response if any row fails; single objects deny-or-allow; `action` flows into evaluation
+- [x] Route-level enforcement: `A3RouteInterceptor` (intent = matched route pattern, action = HTTP method, query params + path variables as attributes, `{id}` → intent identity) — **opt-in** via `a3shield.route-enforcement.enabled`, fail-closed once enabled, `exclude-paths` (+ `/error` always excluded)
+- [x] `EnforcementAuditEvent` (a3-core) published via Spring's event bus at all enforcement points (ANNOTATION / SECURE_POLICY / ROUTE) — hosts subscribe with `@EventListener`
+- [x] Per-row contexts built fresh (subject + tenant + action) instead of mutating the shared request context
+- [x] 128 tests green (starter suite verified stable across repeated runs)
 
 ### M7 — ReBAC implementation 🔮 FUTURE (ADR-0008)
 - [ ] Graph-backed `RelationResolver` (or delegate to OpenFGA/SpiceDB behind the SPI — separate ADR when reached)
@@ -90,10 +92,12 @@ a3-spring-boot-starter  annotations, aspects, interceptor, RequestCheck chain, S
 - [ ] a3-server PDP mode; admin dashboard; JS/Python SDKs; distributed evaluation
 
 ## Open Design Questions
-1. Per-row filtering default: silent filter vs deny-on-any-failure (ADR-0004 leans silent-with-strict-option — confirm with example app in M6).
-2. What exactly goes into v0.1.0 for publishing (M2+M3 minimum? include M4?) — owner call.
+1. Per-row filtering default is now **silent filter with opt-in strict** (implemented per ADR-0004's lean) — still worth confirming against real usage in the example app.
+2. What exactly goes into v0.1.0 for publishing — owner call (M0–M6 now complete).
+3. Batched per-row evaluation: N rows = N evaluations today (CEL programs cached); a bulk evaluation path is a likely optimization once real workloads exist.
 
 ## Changelog (recent)
+- 2026-11-09 (session 9): M6 complete — per-row `@A3SecurePolicy` filtering (default filter / strict mode / action attribute), opt-in fail-closed route enforcement interceptor (route pattern + HTTP method + params/path vars), `EnforcementAuditEvent` published at all enforcement points. 128 tests green.
 - 2026-10-31 (session 8): M5 complete — runtime admin layer: durable EffectivePolicyStore (in-mem + JDBC), PolicyStoreSynchronizer (files vs admin edits, onConflict), PolicyAdminApi with validate-before-commit + audit trail + drift report, StoreBackedPolicyRepository (poll-based invalidation, ADR-0011), opt-in REST admin API. 122 tests green.
 - 2026-10-30 (session 7): M4 complete — `a3-policy-mgmt`: YAML policy migrations (ADR-0010), SHA-256 checksums, version-ordered apply with `onConflict` FAIL/OVERWRITE/SKIP, embedded policy tests (fail-closed startup), in-memory + JDBC applied-versions stores, `MigrationPolicyRepository`, starter auto-wiring; matcher null-subject/type NPEs fixed. 101 tests green.
 - 2026-10-26 (session 6): M3 complete — CEL canonical evaluator (`cel-standalone` 0.5.1) with legacy-syntax facade, fail-closed semantics, compiled-program cache, parity suite (12 cases, engines agree; one pinned difference); starter default evaluator swapped with `@ConditionalOnMissingBean` back-off. Also: develop/staging synced after CI+dependabot merges landed on master. 77 tests green.
