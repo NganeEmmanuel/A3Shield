@@ -16,6 +16,7 @@ a3shield (parent pom, v0.1.0)
 │   ├── model/               # Subject, SubjectType, Resource (abstract, urn() = type:id), Target, Intent (has id)
 │   ├── decision/            # Decision enum, DecisionResult record (reason, matchedPolicyIds, obligations)
 │   ├── exception/           # AccessDeniedException (unchecked, carries DecisionResult)
+│   ├── audit/               # EnforcementAuditEvent (published at every enforcement point)
 │   └── tenant/              # Tenants constants (DEFAULT_TENANT="default", GLOBAL="*")
 ├── a3-policy-mgmt          # Versioned policy migrations (ADR-0003, ADR-0010) — Spring-free, depends on a3-enforcer
 │   ├── migration/            # PolicyMigration, OnConflict, PolicyTestCase models
@@ -36,7 +37,9 @@ a3shield (parent pom, v0.1.0)
 │   └── context/             # RequestContext (subject + resources + action + context + tenantId)
 └── a3-spring-boot-starter   # Spring Boot integration
     ├── annotation/          # @A3Authorize, @A3HasRoles, @A3HasPermissions, @A3Intent (PARAMETER), @A3SecurePolicy
-    ├── aspect/              # A3AuthorizationAspect (pre-check), A3SecurePolicyAspect (post-execution check)
+    ├── aspect/              # A3AuthorizationAspect (pre-check), A3SecurePolicyAspect (per-row post-execution filter/strict)
+    ├── web/                 # A3RouteInterceptor (opt-in, fail-closed route enforcement)
+    ├── audit/               # A3EnforcementAuditor -> EnforcementAuditEvent via Spring events
     ├── check/               # RequestCheck SPI + CheckResult + RequestCheckChain + A3RequestCheckFilter
     ├── context/             # ThreadLocal holders + builders: Request, Subject, Target, Intent
     ├── tenant/              # TenantResolver SPI + DefaultTenantResolver + TenantContextHolder

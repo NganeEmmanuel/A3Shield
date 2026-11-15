@@ -64,7 +64,8 @@ class A3AuthorizationAspectTest {
 
     private Service proxiedService() {
         AspectJProxyFactory factory = new AspectJProxyFactory(new Service());
-        factory.addAspect(new A3AuthorizationAspect(enforcer));
+        factory.addAspect(
+                new A3AuthorizationAspect(enforcer, new com.a3shield.spring.audit.A3EnforcementAuditor(event -> {})));
         return factory.getProxy();
     }
 

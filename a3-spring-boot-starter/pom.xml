@@ -43,6 +43,12 @@
             <artifactId>spring-web</artifactId>
         </dependency>
 
+        <!-- WebMVC: route-level enforcement interceptor -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>

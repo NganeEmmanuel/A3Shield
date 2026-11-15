@@ -147,15 +147,27 @@ public class A3AutoConfiguration {
         return new TargetContextHolder(targetContextBuilder);
     }
 
+    /** Publishes {@link com.a3shield.core.audit.EnforcementAuditEvent}s when a publisher is available. */
     @Bean
     @ConditionalOnMissingBean
-    public A3AuthorizationAspect a3AuthorizationAspect(AccessEnforcer accessEnforcer) {
-        return new A3AuthorizationAspect(accessEnforcer);
+    public com.a3shield.spring.audit.A3EnforcementAuditor a3EnforcementAuditor(
+            ObjectProvider<org.springframework.context.ApplicationEventPublisher> publisher) {
+        return new com.a3shield.spring.audit.A3EnforcementAuditor(publisher);
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public A3SecurePolicyAspect a3SecurePolicyAspect(AccessEnforcer accessEnforcer) {
-        return new A3SecurePolicyAspect(accessEnforcer);
+    public A3AuthorizationAspect a3AuthorizationAspect(
+            AccessEnforcer accessEnforcer, com.a3shield.spring.audit.A3EnforcementAuditor auditor) {
+        return new A3AuthorizationAspect(accessEnforcer, auditor);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public A3SecurePolicyAspect a3SecurePolicyAspect(
+            AccessEnforcer accessEnforcer,
+            TargetContextBuilder targetContextBuilder,
+            com.a3shield.spring.audit.A3EnforcementAuditor auditor) {
+        return new A3SecurePolicyAspect(accessEnforcer, targetContextBuilder, auditor);
     }
 }

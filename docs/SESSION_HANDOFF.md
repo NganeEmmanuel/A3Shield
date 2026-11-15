@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-11-09 (session 9) — M6 complete: enforcement points (branch `feature/enforcement-points`)
+
+**Goal of session:** implement M6 (ADR-0004) — per-row post-execution filtering, route-level enforcement, audit events at all enforcement points.
+
+**What was done:**
+1. **Per-row filtering:** `@A3SecurePolicy` gained `action` and `strict`. Collection returns are evaluated row by row with fresh per-row contexts (subject + tenant + action); default mode silently filters denied rows, `strict = true` throws `AccessDeniedException` (carrying the DecisionResult) if any row fails; single-object returns stay deny-or-allow. The aspect no longer mutates the shared ThreadLocal request context.
+2. **Route enforcement:** `A3RouteInterceptor` — intent type = matched route pattern (`BEST_MATCHING_PATTERN_ATTRIBUTE`), action = HTTP method, query params + path variables as attributes, `{id}` path variable populates the intent identity. **Opt-in** (`a3shield.route-enforcement.enabled=true`) and **fail-closed** once enabled; `a3shield.route-enforcement.exclude-paths` plus `/error` always excluded. Denials answer 403 with the reason. New `spring-webmvc` dependency in the starter.
+3. **Audit events:** `EnforcementAuditEvent` (a3-core, zero-dep record) published through Spring's `ApplicationEventPublisher` by `A3EnforcementAuditor` at all three enforcement points (ANNOTATION / SECURE_POLICY / ROUTE). Hosts subscribe with `@EventListener`; no publisher → no-op.
+4. **128 tests green** (3 core / 53 enforcer / 40 policy-mgmt / 32 starter). New: filter vs strict, action propagation, per-row audit events, route allow/deny/403, route pattern + method + path-var evaluation.
+
+**State:** on `feature/enforcement-points` (from develop), `./mvnw clean verify` + `spotless:check` green, pushed for owner PR.
+
+**Decisions made:** route enforcement opt-in because default-deny would otherwise block every unmapped route; HTTP verb used directly as the route action (`GET`, `DELETE`…) — explicit and unambiguous in policies; per-row evaluation is N evaluations (CEL cache helps) — batching deferred until real workloads.
+
+**Note for transparency:** one `clean verify` run failed in the starter module once, in the same command chain as a Spotless reformat; it did not reproduce in one full clean verify plus three repeated starter runs. Treat as a transient build-state artifact, but watch CI for any recurrence.
+
+**Suggested next steps:** the **example app** (M8) — M0–M6 are complete and the end-to-end story (migrations → CEL → admin edits → per-row filtering → audit events) is now demoable; it would also validate the Spring Boot 4 Dependabot upgrades at runtime. Alternatively M7 (ReBAC). Open: v0.1.0 publishing scope.
+
+---
+
 ## 2026-10-31 (session 8) — M5 complete: runtime admin layer (branch `feature/runtime-admin`)
 
 **Goal of session:** implement M5 (ADR-0003) — runtime policy administration without redeployment.
